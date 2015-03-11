@@ -70,6 +70,41 @@ void assert_cfitsio_status( const int cfitsio_status )
 }
 
 // 
+class SecRef {
+    // merge into C3?
+    public:
+    int imin;
+    int jmin;
+    int imax;
+    int jmax;
+    int isize;
+    int jsize;
+    SecRef (const char buffer[]) {
+        char tmp;
+        std::stringstream ss( buffer );
+        ss >> tmp >> imin >> tmp >> imax >> tmp >> jmin >> tmp >> jmax;
+        imin -= 1;
+        jmin -= 1;
+        isize = imax - imin;
+        jsize = jmax - jmin;
+    }
+};
+
+const char * fits_read_string (fitsfile* fptr, 
+        const char * key, char * buffer) {
+
+    // alternative is to add a constructor to SecRef. but that's equally
+    // ugly!
+    int cfitsio_status = 0;
+    fits_read_key( fptr, TSTRING, key, buffer, 0, &cfitsio_status );
+    assert_cfitsio_status( cfitsio_status );
+    return buffer;
+}
+
+C3::View< float > view_secref(C3::Image<float> image, SecRef& ref) {
+    // merge into C3?
+    return C3::View< float >::create(image, ref.imin, ref.isize, ref.jmin, ref.jsize);
+}
 
 int main( int argc, char* argv[] )
 {
@@ -124,89 +159,12 @@ int main( int argc, char* argv[] )
             assert_cfitsio_status( cfitsio_status );
 
             // DATASEC.
-
-            size_t d_imin, d_imax, d_jmin, d_jmax;
-
-            {
-                char buffer[ FLEN_VALUE ];
-
-                fits_read_key( fptr, TSTRING, "DATASEC", buffer, 0, &cfitsio_status );
-                assert_cfitsio_status( cfitsio_status );
-
-                char tmp;
-                std::stringstream ss( buffer );
-                ss >> tmp >> d_imin >> tmp >> d_imax >> tmp >> d_jmin >> tmp >> d_jmax;
-                d_imin -= 1;
-                d_jmin -= 1;
-            }
-
-            // DATASEC A.
-
-            size_t da_imin, da_imax, da_jmin, da_jmax;
-
-            {
-                char buffer[ FLEN_VALUE ];
-
-                fits_read_key( fptr, TSTRING, "DATASECA", buffer, 0, &cfitsio_status );
-                assert_cfitsio_status( cfitsio_status );
-
-                char tmp;
-                std::stringstream ss( buffer );
-                ss >> tmp >> da_imin >> tmp >> da_imax >> tmp >> da_jmin >> tmp >> da_jmax;
-                da_imin -= 1;
-                da_jmin -= 1;
-            }
-
-            // BIASSEC A.
-
-            size_t ba_imin, ba_imax, ba_jmin, ba_jmax;
-
-            {
-                char buffer[ FLEN_VALUE ];
-
-                fits_read_key( fptr, TSTRING, "BIASSECA", buffer, 0, &cfitsio_status );
-                assert_cfitsio_status( cfitsio_status );
-
-                char tmp;
-                std::stringstream ss( buffer );
-                ss >> tmp >> ba_imin >> tmp >> ba_imax >> tmp >> ba_jmin >> tmp >> ba_jmax;
-                ba_imin -= 1;
-                ba_jmin -= 1;
-            }
-
-            // DATASEC B.
-
-            size_t db_imin, db_imax, db_jmin, db_jmax;
-
-            {
-                char buffer[ FLEN_VALUE ];
-
-                fits_read_key( fptr, TSTRING, "DATASECB", buffer, 0, &cfitsio_status );
-                assert_cfitsio_status( cfitsio_status );
-
-                char tmp;
-                std::stringstream ss( buffer );
-                ss >> tmp >> db_imin >> tmp >> db_imax >> tmp >> db_jmin >> tmp >> db_jmax;
-                db_imin -= 1;
-                db_jmin -= 1;
-            }
-
-            // BIASSEC B.
-
-            size_t bb_imin, bb_imax, bb_jmin, bb_jmax;
-
-            {
-                char buffer[ FLEN_VALUE ];
-
-                fits_read_key( fptr, TSTRING, "BIASSECB", buffer, 0, &cfitsio_status );
-                assert_cfitsio_status( cfitsio_status );
-
-                char tmp;
-                std::stringstream ss( buffer );
-                ss >> tmp >> bb_imin >> tmp >> bb_imax >> tmp >> bb_jmin >> tmp >> bb_jmax;
-                bb_imin -= 1;
-                bb_jmin -= 1;
-            }
+            char buffer[ FLEN_VALUE ];
+            SecRef DATASEC (fits_read_string(fptr, "DATASEC" , buffer)),
+                   DATASECA(fits_read_string(fptr, "DATASECA", buffer)),
+                   DATASECB(fits_read_string(fptr, "DATASECB", buffer)),
+                   BIASSECA(fits_read_string(fptr, "BIASSECA", buffer)),
+                   BIASSECB(fits_read_string(fptr, "BIASSECB", buffer));
 
             // Image parameters.
 
@@ -235,17 +193,17 @@ int main( int argc, char* argv[] )
 
             // Overscan subtraction.
 
-            C3::View< float > dataseca  = C3::View< float >::create( image, da_imin, da_imax - da_imin, da_jmin, da_jmax - da_jmin );
-            C3::View< float > biasseca  = C3::View< float >::create( image, ba_imin, ba_imax - ba_imin, ba_jmin, ba_jmax - ba_jmin );
+            C3::View< float > dataseca  = view_secref(image, DATASECA);
+            C3::View< float > biasseca  = view_secref(image, BIASSECA);
             dataseca -= C3::Reduce< C3::Median, C3::View< float >, C3::Column< float > >::compute( biasseca );
 
-            C3::View< float > datasecb = C3::View< float >::create( image, db_imin, db_imax - db_imin, db_jmin, db_jmax - db_jmin );
-            C3::View< float > biassecb = C3::View< float >::create( image, bb_imin, bb_imax - bb_imin, bb_jmin, bb_jmax - bb_jmin );
+            C3::View< float > datasecb = view_secref(image, DATASECB);
+            C3::View< float > biassecb = view_secref(image, BIASSECB);
             datasecb -= C3::Reduce< C3::Median, C3::View< float >, C3::Column< float > >::compute( biassecb );
 
             // New image from the view.
 
-            C3::View< float >  datasec = C3::View< float >::create( image, d_imin, d_imax - d_imin, d_jmin, d_jmax - d_jmin );
+            C3::View< float >  datasec = view_secref(image, DATASEC);
             C3::Image< float > trimmed = C3::Image< float >::create( datasec.ncols(), datasec.nrows() );
             trimmed = datasec;
             exposure.push_back( trimmed );
