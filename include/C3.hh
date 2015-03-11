@@ -9,4 +9,7 @@
 #include "C3_Stack.hh"
 #include "C3_View.hh"
 
+#include "C3_Operator.hh"
+#include "C3_Reduce.hh"
+
 #endif
