@@ -30,7 +30,8 @@
 #include <mpi.h>
 
 #include "C3.hh"
-#include "DECam.hh"
+#include <vector>
+//#include "DECam.hh"
 
 // Convert MPI error status into an exception.
 

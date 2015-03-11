@@ -1,8 +1,8 @@
 
-# TARGET =                            \
-#     decam-preprocess-science
+TARGET =                            \
+    decam-preprocess-science
 
-TARGET =    \
+#TARGET =    \
     decam-read-test-serial      \
     decam-read-test-parallel
 
