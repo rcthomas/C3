@@ -1,15 +1,11 @@
 
-# TARGET =                            \
-#     decam-preprocess-science
-
-TARGET =    \
-    decam-read-test-serial      \
-    decam-read-test-parallel
+TARGET =                            \
+    decam-preprocess-science
 
 # CXX=g++ -std=c++11 -Wno-deprecated -O3 -funroll-loops -ffast-math
 # CXX=mpicxx -std=c++11 -Wno-deprecated -O3 -funroll-loops -ffast-math
 # CXX=CC -std=c++11 -O3 -static-libgcc # -Wno-deprecated -O3 -funroll-loops -ffast-math -static-libgcc
-CXX=CC -std=c++11 -O3# -static-libgcc # -Wno-deprecated -O3 -funroll-loops -ffast-math -static-libgcc
+CXX=CC -std=c++11 -fast
 
 CFITSIO_INCLUDE=-I$(CFITSIO_DIR)/include
 CFITSIO_LDFLAGS=-L$(CFITSIO_DIR)/lib
