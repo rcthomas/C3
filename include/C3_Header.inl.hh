@@ -15,13 +15,6 @@ inline C3::Header C3::Header::create( fitsfile* fits )
     return C3::Header( size, text );
 }
 
-// Constructor.
-
-inline C3::Header::Header( const size_t size, char* text ) :
-    _size( size ),
-    _text( text )
-{}
-
 // Constructor, copy.
 
 inline C3::Header::Header( const C3::Header& header ) :
@@ -386,6 +379,13 @@ inline C3::Header& C3::Header::operator = ( const C3::Header& header )
     }
     return *this;
 }
+
+// Constructor.
+
+inline C3::Header::Header( const size_t size, char* text ) :
+    _size( size ),
+    _text( text )
+{}
 
 // Stream output.
 
