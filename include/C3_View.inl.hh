@@ -8,18 +8,8 @@ template< typename T >
 inline C3::View< T > C3::View< T >::create( C3::Image< T >& image, 
         const size_t stcol, const size_t ncols, const size_t strow, const size_t nrows )
 {
-    return C3::View< T >( ncols, nrows, image._ncols, image._data + stcol + strow * image._ncols );
+    return C3::View< T >( ncols, nrows, image._ncols, image.data() + stcol + strow * image._ncols );
 }
-
-// Constructor.
-
-template< typename T >
-inline C3::View< T >::View( const size_t ncols, const size_t nrows, const size_t stride, T* data ) :
-    _ncols ( ncols  ),
-    _nrows ( nrows  ),
-    _stride( stride ),
-    _data  ( data   )
-{}
 
 // Constructor, copy.
 
@@ -523,6 +513,16 @@ inline bool C3::View< T >::operator != ( const T scalar ) const
 {
     return ! ( *this == scalar );
 }
+
+// Constructor.
+
+template< typename T >
+inline C3::View< T >::View( const size_t ncols, const size_t nrows, const size_t stride, T* data ) :
+    _ncols ( ncols  ),
+    _nrows ( nrows  ),
+    _stride( stride ),
+    _data  ( data   )
+{}
 
 // Stream output.
 

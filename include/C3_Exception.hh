@@ -15,11 +15,12 @@ namespace C3
         public :
 
             /// Constructor.
-            Exception( const std::string& message ) :
-                std::runtime_error( message ) {}
+            Exception( const std::string& message );
 
     };
 
 }
+
+#include "C3_Exception.inl.hh"
 
 #endif

@@ -4,11 +4,11 @@
 namespace C3
 {
 
-    template< typename T > struct Column;
-    template< typename T > struct Row;
-    template< typename T > struct Image;
-    template< typename T > struct Stack;
-    template< typename T > struct View;
+    template< typename T > class Column;
+    template< typename T > class Row;
+    template< typename T > class Image;
+    template< typename T > class Stack;
+    template< typename T > class View;
 
     /// @class Reduce
     /// @brief Reduction template: primary version.

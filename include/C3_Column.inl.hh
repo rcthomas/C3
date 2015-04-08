@@ -19,14 +19,6 @@ inline C3::Column< T > C3::Column< T >::create( const size_t size, const T scala
     return column = scalar;
 }
 
-// Constructor.
-
-template< typename T >
-inline C3::Column< T >::Column( const size_t size, T* data ) :
-    _size( size ),
-    _data( data )
-{}
-
 // Constructor, copy.
 
 template< typename T >
@@ -186,6 +178,14 @@ inline C3::Column< T >::operator C3::Column< U > () const
     std::copy( _data, _data + _size, column._data );
     return column;
 }
+
+// Constructor.
+
+template< typename T >
+inline C3::Column< T >::Column( const size_t size, T* data ) :
+    _size( size ),
+    _data( data )
+{}
 
 // Stream output.
 

@@ -19,16 +19,6 @@ inline C3::Stack< T > C3::Stack< T >::create( const size_t nimgs, const size_t n
     return stack = scalar;
 }
 
-// Constructor.
-
-template< typename T >
-inline C3::Stack< T >::Stack( const size_t nimgs, const size_t ncols, const size_t nrows, T* data ) :
-    _nimgs( nimgs ),
-    _ncols( ncols ),
-    _nrows( nrows ),
-    _data ( data  )
-{}
-
 // Constructor, copy.
 
 template< typename T >
@@ -129,6 +119,16 @@ inline C3::Stack< T >::operator C3::Stack< U > () const
     std::copy( _data, _data + size(), stack._data );
     return stack;
 }
+
+// Constructor.
+
+template< typename T >
+inline C3::Stack< T >::Stack( const size_t nimgs, const size_t ncols, const size_t nrows, T* data ) :
+    _nimgs( nimgs ),
+    _ncols( ncols ),
+    _nrows( nrows ),
+    _data ( data  )
+{}
 
 // Stream output.  Mostly for debugging.
 

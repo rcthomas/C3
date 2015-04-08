@@ -19,15 +19,6 @@ inline C3::Image< T > C3::Image< T >::create( const size_t ncols, const size_t n
     return image = scalar;
 }
 
-// Constructor.
-
-template< typename T >
-inline C3::Image< T >::Image( const size_t ncols, const size_t nrows, T* data ) :
-    _ncols( ncols ),
-    _nrows( nrows ),
-    _data ( data  )
-{}
-
 // Constructor, copy.
 
 template< typename T >
@@ -480,6 +471,15 @@ inline C3::Image< T >::operator C3::Image< U > () const
     std::copy( _data, _data + size(), image._data );
     return image;
 }
+
+// Constructor.
+
+template< typename T >
+inline C3::Image< T >::Image( const size_t ncols, const size_t nrows, T* data ) :
+    _ncols( ncols ),
+    _nrows( nrows ),
+    _data ( data  )
+{}
 
 // Stream output.
 

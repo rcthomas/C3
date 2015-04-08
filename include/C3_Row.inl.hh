@@ -19,14 +19,6 @@ inline C3::Row< T > C3::Row< T >::create( const size_t size, const T scalar )
     return row = scalar;
 }
 
-// Constructor.
-
-template< typename T >
-inline C3::Row< T >::Row( const size_t size, T* data ) :
-    _size( size ),
-    _data( data )
-{}
-
 // Constructor, copy.
 
 template< typename T >
@@ -186,6 +178,14 @@ inline C3::Row< T >::operator C3::Row< U > () const
     std::copy( _data, _data + _size, row._data );
     return row;
 }
+
+// Constructor.
+
+template< typename T >
+inline C3::Row< T >::Row( const size_t size, T* data ) :
+    _size( size ),
+    _data( data )
+{}
 
 // Stream output.
 

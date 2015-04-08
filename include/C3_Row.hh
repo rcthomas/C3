@@ -5,72 +5,80 @@ namespace C3
 {
 
     /// @class Row
-    /// @brief Horizontal arrangement of pixels.
+    /// @brief Horizontal semantic arrangement of pixels.
 
     template< typename T >
-    struct Row
+    class Row
     {
 
-        /// Pixel type.
-        typedef T value_type;
+        public :
 
-        /// Create row.
-        static Row create( const size_t size );
+            /// Pixel type.
+            typedef T value_type;
 
-        /// Create row and initialize with a scalar value.
-        static Row create( const size_t size, const T scalar );
+            /// Create uninitialized row.
+            static Row create( const size_t size );
 
-        /// Constructor.
-        Row( const size_t size, T* data );
+            /// Create row and initialize with a scalar value.
+            static Row create( const size_t size, const T scalar );
 
-        /// Constructor, copy.
-        Row( const Row& row );
+            /// Constructor, copy.
+            Row( const Row& row );
 
-        /// Destructor.
-        ~Row();
+            /// Destructor.
+            ~Row();
 
-        /// Size.
-        ///@{
-        size_t ncols() const { return _size; }
-        size_t nrows() const { return     1; }
-        size_t size()  const { return _size; }
-        ///@}
+            /// Size.
+            ///@{
+            size_t ncols() const { return _size; }
+            size_t nrows() const { return     1; }
+            size_t size()  const { return _size; }
+            ///@}
 
-        /// Access.
-        ///@{
-        T  operator () ( const size_t j ) const { return _data[ j ]; }
-        T& operator () ( const size_t j )       { return _data[ j ]; }
-        ///@}
+            /// Pixel access.
+            ///@{
+            T  operator () ( const size_t j ) const { return _data[ j ]; }
+            T& operator () ( const size_t j )       { return _data[ j ]; }
+            ///@}
 
-        /// Operators, row argument.
-        ///@{
-        Row& operator =  ( const Row& row );
-        Row& operator += ( const Row& row );
-        Row& operator -= ( const Row& row );
-        Row& operator *= ( const Row& row );
-        Row& operator /= ( const Row& row );
-        bool operator == ( const Row& row ) const;
-        bool operator != ( const Row& row ) const;
-        ///@}
+            /// Data access.
+            ///@{
+            T*       data()       { return _data; }
+            const T* data() const { return _data; }
+            ///@}
 
-        /// Operators, scalar argument.
-        ///@{
-        Row& operator =  ( const T scalar );
-        Row& operator += ( const T scalar );
-        Row& operator -= ( const T scalar );
-        Row& operator *= ( const T scalar );
-        Row& operator /= ( const T scalar );
-        bool operator == ( const T scalar ) const;
-        bool operator != ( const T scalar ) const;
-        ///@}
+            /// Operators, row argument.
+            ///@{
+            Row& operator =  ( const Row& row );
+            Row& operator += ( const Row& row );
+            Row& operator -= ( const Row& row );
+            Row& operator *= ( const Row& row );
+            Row& operator /= ( const Row& row );
+            bool operator == ( const Row& row ) const;
+            bool operator != ( const Row& row ) const;
+            ///@}
 
-        /// Cast to row of another type.
-        template< typename U > operator Row< U > () const;
+            /// Operators, scalar argument.
+            ///@{
+            Row& operator =  ( const T scalar );
+            Row& operator += ( const T scalar );
+            Row& operator -= ( const T scalar );
+            Row& operator *= ( const T scalar );
+            Row& operator /= ( const T scalar );
+            bool operator == ( const T scalar ) const;
+            bool operator != ( const T scalar ) const;
+            ///@}
 
-        // Data members.
+            /// Cast to row of another type.
+            template< typename U > operator Row< U > () const;
 
-        size_t  _size; ///< Number of pixels.
-        T*      _data; ///< Raw pixels.
+        private :
+
+            /// Constructor.
+            Row( const size_t size, T* data );
+
+            size_t  _size; ///< Number of pixels.
+            T*      _data; ///< Raw pixels.
 
     };
 

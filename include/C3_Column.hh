@@ -5,72 +5,80 @@ namespace C3
 {
 
     /// @class Column
-    /// @brief Vertical arrangement of pixels.
+    /// @brief Vertical semantic arrangement of pixels.
 
     template< typename T >
-    struct Column
+    class Column
     {
 
-        /// Pixel type.
-        typedef T value_type;
+        public :
 
-        /// Create column.
-        static Column create( const size_t size );
+            /// Pixel type.
+            typedef T value_type;
 
-        /// Create column and initialize with a scalar value.
-        static Column create( const size_t size, const T scalar );
+            /// Create uninitialized column.
+            static Column create( const size_t size );
 
-        /// Constructor.
-        Column( const size_t size, T* data );
+            /// Create column and initialize with a scalar value.
+            static Column create( const size_t size, const T scalar );
 
-        /// Constructor, copy.
-        Column( const Column& column );
+            /// Constructor, copy.
+            Column( const Column& column );
 
-        /// Destructor.
-        ~Column();
+            /// Destructor.
+            ~Column();
 
-        /// Size and shape.
-        ///@{
-        size_t ncols() const { return     1; }
-        size_t nrows() const { return _size; }
-        size_t size()  const { return _size; }
-        ///@}
+            /// Size and shape.
+            ///@{
+            size_t ncols() const { return     1; }
+            size_t nrows() const { return _size; }
+            size_t size()  const { return _size; }
+            ///@}
 
-        /// Access.
-        ///@{
-        T  operator () ( const size_t k ) const { return _data[ k ]; }
-        T& operator () ( const size_t k )       { return _data[ k ]; }
-        ///@}
+            /// Pixel access.
+            ///@{
+            T  operator () ( const size_t k ) const { return _data[ k ]; }
+            T& operator () ( const size_t k )       { return _data[ k ]; }
+            ///@}
 
-        /// Operators, column argument.
-        ///@{
-        Column& operator =  ( const Column& column );
-        Column& operator += ( const Column& column );
-        Column& operator -= ( const Column& column );
-        Column& operator *= ( const Column& column );
-        Column& operator /= ( const Column& column );
-        bool    operator == ( const Column& column ) const;
-        bool    operator != ( const Column& column ) const;
-        ///@}
+            /// Data access.
+            ///@{
+            T*       data()       { return _data; }
+            const T* data() const { return _data; }
+            ///@}
 
-        /// Operators, scalar argument.
-        ///@{
-        Column& operator =  ( const T scalar );
-        Column& operator += ( const T scalar );
-        Column& operator -= ( const T scalar );
-        Column& operator *= ( const T scalar );
-        Column& operator /= ( const T scalar );
-        bool    operator == ( const T scalar ) const;
-        bool    operator != ( const T scalar ) const;
-        ///@}
+            /// Operators, column argument.
+            ///@{
+            Column& operator =  ( const Column& column );
+            Column& operator += ( const Column& column );
+            Column& operator -= ( const Column& column );
+            Column& operator *= ( const Column& column );
+            Column& operator /= ( const Column& column );
+            bool    operator == ( const Column& column ) const;
+            bool    operator != ( const Column& column ) const;
+            ///@}
 
-        /// Cast to column of another type.
-        template< typename U > operator Column< U > () const;
+            /// Operators, scalar argument.
+            ///@{
+            Column& operator =  ( const T scalar );
+            Column& operator += ( const T scalar );
+            Column& operator -= ( const T scalar );
+            Column& operator *= ( const T scalar );
+            Column& operator /= ( const T scalar );
+            bool    operator == ( const T scalar ) const;
+            bool    operator != ( const T scalar ) const;
+            ///@}
 
-        // Data members.
+            /// Cast to column of another type.
+            template< typename U > operator Column< U > () const;
 
-        size_t  _size;  ///< Number of pixels.
-        T*      _data;  ///< Raw pixels.
+        private :
+
+            /// Constructor.
+            Column( const size_t size, T* data );
+
+            size_t  _size;  ///< Number of pixels.
+            T*      _data;  ///< Raw pixels.
 
     };
 
