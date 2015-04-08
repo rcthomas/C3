@@ -3,6 +3,28 @@
 
 #include "C3_Exception.hh"
 
+// Raise an exception if CFITSIO status is not 0.
+
+void C3::assert_cfitsio_status( const int cfitsio_status )
+{
+
+    if( cfitsio_status == 0 ) return;
+
+    std::stringstream ss;
+    ss << "CFITSIO error code " << cfitsio_status;
+
+    char error_text[ FLEN_STATUS ];
+    fits_get_errstatus( cfitsio_status, error_text );
+    ss << " | " << error_text;
+    ss << " | error stack ... " << std::endl;
+
+    char error_message[ FLEN_ERRMSG ];
+    while( fits_read_errmsg( error_message ) != 0 ) ss << error_message << std::endl;
+
+    throw C3::Exception( ss.str() );
+
+}
+
 // Create by loading from a FITS HDU.
 
 inline C3::Header C3::Header::create( fitsfile* fits )
@@ -11,7 +33,7 @@ inline C3::Header C3::Header::create( fitsfile* fits )
     char* text = 0;
     int status = 0;
     fits_convert_hdr2str( fits, 0, 0, 0, &text, &size, &status );
-    C3::FitsException::assert_status( status );
+    C3::assert_cfitsio_status( status );
     return C3::Header( size, text );
 }
 
@@ -244,7 +266,7 @@ inline size_t C3::Header::find( const std::string& keyword, const size_t occurre
         int keylength = 0;
         int status = 0;
         fits_get_keyname( card, this_keyword, &keylength, &status );
-        C3::FitsException::assert_status( status );
+        C3::assert_cfitsio_status( status );
 
         if( std::string( this_keyword ) != keyword ) continue;
         if( count == occurrence ) return pos;
@@ -271,12 +293,12 @@ inline void C3::Header::extract( const size_t pos, std::string& keyword, std::st
     int keylength = 0;
     int status = 0;
     fits_get_keyname( card, this_keyword, &keylength, &status );
-    C3::FitsException::assert_status( status );
+    C3::assert_cfitsio_status( status );
 
     char this_value[ FLEN_VALUE ]; 
     char this_comment[ FLEN_COMMENT ];
     fits_parse_value( card, this_value, this_comment, &status );
-    C3::FitsException::assert_status( status );
+    C3::assert_cfitsio_status( status );
 
     keyword = this_keyword;
     value   = this_value;
@@ -297,7 +319,7 @@ inline void C3::Header::replace( const size_t pos, const std::string& keyword, c
     int keytype = 0;
     int status = 0;
     fits_parse_template( templt, card, &keytype, &status );
-    C3::FitsException::assert_status( status );
+    C3::assert_cfitsio_status( status );
 
     memset( _text + pos * 80, ' ', 80 );
     strncpy( _text + pos * 80, card, strlen( card ) );
@@ -325,7 +347,7 @@ inline void C3::Header::insert( const size_t pos, const std::string& keyword, co
     int keytype = 0;
     int status = 0;
     fits_parse_template( templt, card, &keytype, &status );
-    C3::FitsException::assert_status( status );
+    C3::assert_cfitsio_status( status );
 
     memset ( tmp + pos * 80,  ' ', 80 );
     strncpy( tmp + pos * 80, card, strlen( card ) );

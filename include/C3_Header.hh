@@ -10,6 +10,9 @@
 namespace C3
 {
 
+    /// Raise exception if CFITSIO status passed is not 0.
+    void assert_cfitsio_status( const int cfitsio_status );
+
     /// @class Header
     /// @brief Use this for debugging and development, not production.
 
