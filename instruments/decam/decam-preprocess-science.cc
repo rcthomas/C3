@@ -25,6 +25,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <vector>
 
 #include <fitsio.h>
 #include <mpi.h>
