@@ -1,6 +1,7 @@
 #ifndef C3__FRAMEWORK__HH
 #define C3__FRAMEWORK__HH
 
+#include "C3_Communicator.hh"
 #include "C3_Environment.hh"
 #include "C3_Exception.hh"
 
