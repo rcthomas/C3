@@ -1,4 +1,4 @@
 
-inline Exception::Exception( const std::string& message ) :
+inline C3::Exception::Exception( const std::string& message ) :
     std::runtime_error( message )
 {}
