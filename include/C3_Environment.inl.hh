@@ -12,16 +12,18 @@
 template< class DetectorPolicy >
 inline C3::Environment< DetectorPolicy >& C3::Environment< DetectorPolicy >::instance( int& argc, char**& argv )
 {
-    if( ! _instance ) _instance = new C3::Environment< DetectorPolicy >( argc, argv );
-    return *_instance;
+    C3::Environment< DetectorPolicy >& env = C3::Environment< DetectorPolicy >::instance();
+    env._init( argc, argv );
+    return env;
 }
 
-// General access point.
+// General access point.  Meyers singleton.
 
 template< class DetectorPolicy >
 inline C3::Environment< DetectorPolicy >& C3::Environment< DetectorPolicy >::instance()
 {
-    return *_instance;
+    static C3::Environment< DetectorPolicy > env;
+    return env;
 }
 
 // FIXME COMMENT ME
@@ -108,7 +110,33 @@ inline void C3::Environment< DetectorPolicy >::finalize()
 // Constructor.
 
 template< class DetectorPolicy >
-inline C3::Environment< DetectorPolicy >::Environment( int& argc, char**& argv )
+inline C3::Environment< DetectorPolicy >::Environment()
+{}
+
+// Copy constructor.
+
+template< class DetectorPolicy >
+inline C3::Environment< DetectorPolicy >::Environment( const C3::Environment< DetectorPolicy >& env )
+{}
+
+// Destructor.
+
+template< class DetectorPolicy >
+inline C3::Environment< DetectorPolicy >::~Environment()
+{}
+
+// Assignment.
+
+template< class DetectorPolicy >
+inline C3::Environment< DetectorPolicy >& C3::Environment< DetectorPolicy >::operator = ( const C3::Environment< DetectorPolicy >& env )
+{
+    return *this;
+}
+
+// Initialize singleton.
+
+template< class DetectorPolicy >
+inline void C3::Environment< DetectorPolicy >::_init( int& argc, char**& argv )
 {
 
     // Initialization is broken into steps mostly for readability here.  Can't
@@ -124,31 +152,6 @@ inline C3::Environment< DetectorPolicy >::Environment( int& argc, char**& argv )
     _init_node();
     _init_openmp();
 
-}
-
-// Copy constructor.
-
-template< class DetectorPolicy >
-inline C3::Environment< DetectorPolicy >::Environment( const C3::Environment< DetectorPolicy >& env )
-{}
-
-// Destructor.
-
-template< class DetectorPolicy >
-inline C3::Environment< DetectorPolicy >::~Environment()
-{
-    delete _world;
-    delete _frame;
-    delete _exposure;
-    delete _node;
-}
-
-// Assignment.
-
-template< class DetectorPolicy >
-inline C3::Environment< DetectorPolicy >& C3::Environment< DetectorPolicy >::operator = ( const C3::Environment< DetectorPolicy >& env )
-{
-    return *this;
 }
 
 // Usual MPI launch.
@@ -168,7 +171,7 @@ inline void C3::Environment< DetectorPolicy >::_init_mpi( int& argc, char**& arg
 template< class DetectorPolicy >
 inline void C3::Environment< DetectorPolicy >::_init_world()
 {
-    _world = new C3::Communicator( MPI_COMM_WORLD );
+    _world.reset( new C3::Communicator( MPI_COMM_WORLD ) );
 }
 
 // Configure hostname of this MPI process.  This should be the same for every
@@ -312,7 +315,7 @@ inline void C3::Environment< DetectorPolicy >::_init_frame_unpacked()
 
     // Frame communicator wrapper.
 
-    _frame = new C3::Communicator( frame );
+    _frame.reset( new C3::Communicator( frame ) );
 
 }
 
@@ -349,7 +352,7 @@ inline void C3::Environment< DetectorPolicy >::_init_exposure()
 
     // Exposure lane communicator wrapper.
 
-    _exposure = new C3::Communicator( exposure );
+    _exposure.reset( new C3::Communicator( exposure ) );
 
 }
 
@@ -385,7 +388,7 @@ inline void C3::Environment< DetectorPolicy >::_init_node()
 
     // Node communicator wrapper.
 
-    _node = new C3::Communicator( node );
+    _node.reset( new C3::Communicator( node ) );
 
 }
 

@@ -1,7 +1,7 @@
 #ifndef C3__ENVIRONMENT
 #define C3__ENVIRONMENT
 
-#include <string>
+#include <memory>
 #include <vector>
 
 #include "C3_Communicator.hh"
@@ -21,7 +21,7 @@ namespace C3
             /// Start-up access point.
             static Environment& instance( int& argc, char**& argv );
     
-            /// General access point.
+            /// General access point used after start-up.
             static Environment& instance();
 
             /// Stream a summary of the environment (to frame root).
@@ -46,7 +46,7 @@ namespace C3
         private :
 
             /// Constructor.
-            Environment( int& argc, char**& argv );
+            Environment();
     
             /// Copy constructor.
             Environment( const Environment& env );
@@ -59,6 +59,7 @@ namespace C3
     
             /// Initializers for various components.
             ///@{
+            void _init( int& argc, char**& argv );      // Main initializer.
             void _init_mpi( int& argc, char**& argv );  // Launch MPI.
             void _init_world();                         // World communicator wrapper.
             void _init_hostname();                      // Hostname of this MPI process.
@@ -74,13 +75,11 @@ namespace C3
             std::vector< std::string > _gather_hostnames( const C3::Communicator& comm );
 
         private :
-    
-            static Environment< DetectorPolicy >* _instance;    ///< Singleton instance.
 
-            C3::Communicator*   _world;                     ///< All MPI processes contained at startup.
-            C3::Communicator*   _frame;                     ///< MPI processes actively handling frames.
-            C3::Communicator*   _exposure;                  ///< MPI processes within an exposure lane.
-            C3::Communicator*   _node;                      ///< MPI processes with the same hostname.
+            std::unique_ptr< C3::Communicator > _world;     ///< All MPI processes contained at startup.
+            std::unique_ptr< C3::Communicator > _frame;     ///< MPI processes actively handling frames.
+            std::unique_ptr< C3::Communicator > _exposure;  ///< MPI processes within an exposure lane.
+            std::unique_ptr< C3::Communicator > _node;      ///< MPI processes with the same hostname.
     
             int                 _exposure_lanes;            ///< Number of exposure lanes.
             int                 _mpi_processes_per_node;    ///< MPI processes per node.
