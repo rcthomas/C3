@@ -26,7 +26,7 @@ inline C3::Environment< DetectorPolicy >& C3::Environment< DetectorPolicy >::ins
     return env;
 }
 
-// FIXME COMMENT ME
+// Tabular summary of the processing environment.
 
 template< class DetectorPolicy >
 inline void C3::Environment< DetectorPolicy >::summary( std::ostream& stream )
@@ -35,45 +35,27 @@ inline void C3::Environment< DetectorPolicy >::summary( std::ostream& stream )
     std::stringstream ss;
     ss << std::left;
 
-    ss << std::setw( 30 ) <<  "";
-    ss << std::setw( 30 ) << "size";
-    ss << std::setw( 30 ) << "rank";
-    ss << std::setw( 30 ) << "root";
-    ss << std::endl;
-
-    ss << std::setw( 30 ) << "world";
-    ss << std::setw( 30 ) << world().size();
-    ss << std::setw( 30 ) << world().rank();
-    ss << std::setw( 30 ) << ( world().root() ? "yes" : "no" );
-    ss << std::endl;
-
-    ss << std::setw( 30 ) << "frame";
-    ss << std::setw( 30 ) << frame().size();
-    ss << std::setw( 30 ) << frame().rank();
-    ss << std::setw( 30 ) << ( frame().root() ? "yes" : "no" );
-    ss << std::endl;
-
-    ss << std::setw( 30 ) << "exposure";
-    ss << std::setw( 30 ) << exposure().size();
-    ss << std::setw( 30 ) << exposure().rank();
-    ss << std::setw( 30 ) << ( exposure().root() ? "yes" : "no" );
-    ss << std::endl;
-
-    ss << std::setw( 30 ) << "node";
-    ss << std::setw( 30 ) << node().size();
-    ss << std::setw( 30 ) << node().rank();
-    ss << std::setw( 30 ) << ( node().root() ? "yes" : "no" );
-    ss << std::endl;
-
-    ss << std::setw( 30 ) << "hostname"                 << _hostname                << std::endl;
-    ss << std::setw( 30 ) << "MPI processes per node"   << _mpi_processes_per_node  << std::endl;
-    ss << std::setw( 30 ) << "exposure lanes"           << _exposure_lanes          << std::endl;
-    ss << std::setw( 30 ) << "exposure lane"            << _exposure_lane           << std::endl;
-    ss << std::setw( 30 ) << "threads per MPI process"  << _threads_per_mpi_process << std::endl;
+    ss << std::setw( 7 ) << world().size();
+    ss << std::setw( 1 ) << ( world().root() ? "*" : " " );
+    ss << std::setw( 7 ) << world().rank();
+    ss << std::setw( 7 ) << frame().size();
+    ss << std::setw( 1 ) << ( frame().root() ? "*" : " " );
+    ss << std::setw( 7 ) << frame().rank();
+    ss << std::setw( 7 ) << exposure().size();
+    ss << std::setw( 1 ) << ( exposure().root() ? "*" : " " );
+    ss << std::setw( 7 ) << exposure().rank();
+    ss << std::setw( 7 ) << node().size();
+    ss << std::setw( 1 ) << ( node().root() ? "*" : " " );
+    ss << std::setw( 7 ) << node().rank();
+    ss << std::setw( 7 ) << _exposure_lanes;
+    ss << std::setw( 7 ) << _exposure_lane;
+    ss << std::setw( 6 ) << _mpi_processes_per_node;
+    ss << std::setw( 8 ) << _threads_per_mpi_process;
+    ss << _hostname;
 
     std::string string = ss.str();
 
-    int size = 10 * 120;
+    int size = 120;
     string.resize( size );
 
     char* buffer = new char [ size * frame().size() ];
@@ -84,14 +66,46 @@ inline void C3::Environment< DetectorPolicy >::summary( std::ostream& stream )
 
     if( frame().root() )
     {
-        for( int rank = 0; rank < frame().size(); ++ rank )
-        {
-            for( size_t i = 0; i < 120; ++ i ) stream << "-";
-            stream << std::endl;
-            stream << buffer + rank * size;
-        }
-        for( size_t i = 0; i < 120; ++ i ) stream << "-";
+
+        stream << std::setfill( '=' ) << std::setw( 120 ) << "" << std::setfill( ' ' ) << std::endl;
+
+        stream << std::left;
+        stream << std::setw( 8 ) << "world";
+        stream << std::setw( 7 ) << "world";
+        stream << std::setw( 8 ) << "frame";
+        stream << std::setw( 7 ) << "frame";
+        stream << std::setw( 8 ) << "expo";
+        stream << std::setw( 7 ) << "expo";
+        stream << std::setw( 8 ) << "node";
+        stream << std::setw( 7 ) << "node";
+        stream << std::setw( 7 ) << "expo";
+        stream << std::setw( 7 ) << "expo";
+        stream << std::setw( 6 ) << "MPI/";
+        stream << std::setw( 8 ) << "OpenMP/";
         stream << std::endl;
+
+        stream << std::left;
+        stream << std::setw( 8 ) << "size";
+        stream << std::setw( 7 ) << "rank";
+        stream << std::setw( 8 ) << "size";
+        stream << std::setw( 7 ) << "rank";
+        stream << std::setw( 8 ) << "size";
+        stream << std::setw( 7 ) << "rank";
+        stream << std::setw( 8 ) << "size";
+        stream << std::setw( 7 ) << "rank";
+        stream << std::setw( 7 ) << "lanes";
+        stream << std::setw( 7 ) << "lane";
+        stream << std::setw( 6 ) << "node";
+        stream << std::setw( 8 ) << "MPI";
+        stream << "hostname";
+        stream << std::endl;
+
+        stream << std::setfill( '-' ) << std::setw( 120 ) << "" << std::setfill( ' ' ) << std::endl;
+
+        for( int rank = 0; rank < frame().size(); ++ rank ) stream << buffer + rank * size << std::endl;
+
+        stream << std::setfill( '=' ) << std::setw( 120 ) << "" << std::setfill( ' ' ) << std::endl;
+
     }
 
     delete [] buffer;
