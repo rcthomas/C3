@@ -71,7 +71,7 @@ namespace C3
             void _init_openmp();                        // OpenMP information.
             ///@}
 
-            /// Hostname of each task in an MPI communicator in rank order.
+            /// Hostname of each process in an MPI communicator in rank order.
             std::vector< std::string > _gather_hostnames( const C3::Communicator& comm );
 
         private :

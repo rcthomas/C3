@@ -252,8 +252,8 @@ inline void C3::Environment< DetectorPolicy >::_init_frame_unpacked()
     
     int nodes_per_exposure_lane = ( exposure_lane_width() + ( _mpi_processes_per_node - 1 ) ) / _mpi_processes_per_node;
 
-    // Total tasks per exposure lane includes active MPI frame processes and
-    // surplus MPI processes to deactivate.
+    // Total processes per exposure lane includes active MPI frame processes
+    // and surplus MPI processes to deactivate.
 
     int mpi_processes_per_exposure_lane = nodes_per_exposure_lane * _mpi_processes_per_node;
 
@@ -318,8 +318,8 @@ inline void C3::Environment< DetectorPolicy >::_init_frame_unpacked()
     status = MPI_Comm_create( world().comm(), frame_group, &frame );
     C3::MPI::assert_status( status );
 
-    // Release all tasks not in frame communicator.  Frame communicator is now
-    // effectively the "world" communicator to use from now on.
+    // Release all MPI processes not in frame communicator.  Frame communicator
+    // is now effectively the "world" communicator to use from now on.
 
     if( frame == MPI_COMM_NULL )
     {
