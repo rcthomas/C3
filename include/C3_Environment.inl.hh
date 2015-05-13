@@ -322,11 +322,7 @@ inline void C3::Environment< DetectorPolicy >::_init_frame_unpacked()
     // Release all MPI processes not in frame communicator.  Frame communicator
     // is now effectively the "world" communicator to use from now on.
 
-    if( frame == MPI_COMM_NULL )
-    {
-        finalize();
-        exit( 0 );
-    }
+    if( frame == MPI_COMM_NULL ) exit( finalize() );
 
     // Frame communicator wrapper.
 
