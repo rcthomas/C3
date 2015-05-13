@@ -25,6 +25,8 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 
 GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
+GTEST_INSTALL=$(GTEST_DIR)/lib
+
 # For simplicity and to avoid depending on Google Test's implementation
 # details, the dependencies specified below are conservative and not optimized.
 # This is fine as Google Test compiles fast and for ordinary users its source
@@ -32,7 +34,7 @@ GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 
 TARGET=gtest.a
 
-all: $(TARGET)
+all : $(TARGET)
 
 gtest-all.o : $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
@@ -41,8 +43,11 @@ gtest-all.o : $(GTEST_SRCS_)
 gtest.a : gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
-clean:
+install : gtest.a
+	mkdir -p $(GTEST_INSTALL); cp gtest.a $(GTEST_INSTALL)/.
+
+clean :
 	rm -rf *.o
 
-realclean: clean
+realclean : clean
 	rm -rf $(TARGET)
