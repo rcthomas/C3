@@ -115,10 +115,11 @@ inline void C3::Environment< DetectorPolicy >::summary( std::ostream& stream )
 // Sweet dreams MPI.
 
 template< class DetectorPolicy >
-inline void C3::Environment< DetectorPolicy >::finalize()
+inline int C3::Environment< DetectorPolicy >::finalize()
 {
     int status = MPI_Finalize();
     C3::MPI::assert_status( status );
+    return EXIT_SUCCESS;
 }
 
 // Constructor.

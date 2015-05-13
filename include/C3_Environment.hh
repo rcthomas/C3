@@ -41,7 +41,7 @@ namespace C3
             ///@}
 
             /// Shutdown.
-            void finalize();
+            int finalize();
 
         private :
 
