@@ -1,15 +1,25 @@
 #ifndef DECAM__HH
 #define DECAM__HH
 
-class DECam 
+namespace DECam
 {
 
-    public :
+    /// @class DECam
+    /// @brief Description of the Dark Energy Camera.
 
-        static std::string id()       { return "DECam"; }
-        static int         frames()   { return      70; }
+    class DECam 
+    {
+    
+        public :
+    
+            static std::string id()       { return "DECam"; }
+            static int         frames()   { return      70; }
+    
+    };
 
-};
+
+}
+
 
 #endif
 
