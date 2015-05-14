@@ -56,6 +56,9 @@ namespace C3
             T*       data( const size_type offset = 0 )       { return _data + offset; }
             ///@}
 
+            /// Cast to block of another type.
+            template< typename U > operator Block< U > () const;
+
         private :
 
             size_type   _size;  ///< Number of elements.

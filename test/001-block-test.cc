@@ -107,6 +107,7 @@ TEST( BlockTest, ElementAccessWorks )
 {
     size_t size = 5;
     C3::Block< size_t > block( size );
+
     block[ 0 ] = 99; EXPECT_EQ( 99, block[ 0 ] );
     block[ 1 ] = 79; EXPECT_EQ( 79, block[ 1 ] );
     block[ 2 ] = 49; EXPECT_EQ( 49, block[ 2 ] );
@@ -116,6 +117,7 @@ TEST( BlockTest, ElementAccessWorks )
 
 TEST( BlockTest, DataAccessWorks )
 {
+
     size_t size = 5;
     C3::Block< size_t > block( size );
 
@@ -143,6 +145,19 @@ TEST( BlockTest, DataAccessWorks )
     EXPECT_EQ( 312211    , const_offset_data[ 1 ] );
     EXPECT_EQ( 13112221  , const_offset_data[ 2 ] );
     EXPECT_EQ( 1113213211, const_offset_data[ 3 ] );
+
+}
+
+TEST( BlockTest, CastWorks )
+{
+
+    size_t size = 5;
+    C3::Block< unsigned char > block( size );
+    block[ 0 ] = 255;
+
+    C3::Block< signed char > other( block );
+    EXPECT_EQ( -1, other[ 0 ] );
+
 }
 
 int main( int argc, char* argv[] )

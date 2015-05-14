@@ -67,3 +67,14 @@ inline C3::Block< T >::~Block()
 {
     delete [] _data;
 }
+
+// Cast to block of another type.
+
+template< typename T >
+template< typename U >
+inline C3::Block< T >::operator C3::Block< U > () const
+{
+    C3::Block< U > block( _size );
+    std::copy( _data, _data + _size, block.data() );
+    return block;
+}
