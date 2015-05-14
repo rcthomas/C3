@@ -12,6 +12,11 @@ class Makefile ( object ) :
         output =  "# {}\n\n".format( self.__class__.__name__ )
         output += "{:10} = {}\n".format( "CXX"       , self.cxx      )
         output += "{:10} = {}\n".format( "CXXFLAGS"  , self.cxxflags )
+        output += "\n"
+        output += "all :\n\n"
+        output += "distclean :\n"
+        output += "\tcd app/decam && make realclean\n"
+        output += "\tcd test && make deepclean\n"
         return output
 
 class EdisonMakefile ( Makefile ) :
