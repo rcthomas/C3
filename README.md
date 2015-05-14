@@ -2,6 +2,8 @@
 C3
 ==
 
+<img src="https://avatars2.githubusercontent.com/u/78920?v=3&s=400"></img>
+
 Parallel CCD preprocessing framework.  
 
 ## Developer getting started.
