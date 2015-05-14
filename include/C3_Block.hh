@@ -52,8 +52,8 @@ namespace C3
 
             /// Data access from offset.
             ///@{
-            const T* data( const size_type offset = 0 ) const { return _data; }
-            T*       data( const size_type offset = 0 )       { return _data; }
+            const T* data( const size_type offset = 0 ) const { return _data + offset; }
+            T*       data( const size_type offset = 0 )       { return _data + offset; }
             ///@}
 
         private :
