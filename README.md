@@ -4,7 +4,25 @@ C3
 
 Parallel CCD preprocessing framework.  
 
-Run `config.py` to create the top-level Makefile.  If this does not work on
-your architecture or you don't like how it works, feel free to fix up the
-script.  When we start worrying about real production, we can do something more
-sophisticated.
+## Developer getting started.
+
+(1) First run `config.py` --- this creates the top-level Makefile.  The
+`config.py` only needs to be run the first time you check out the repo or after
+you change `config.py` as it is the thing that generates the top-level
+Makefile.  A cmake or autotools build system would be nice in the future.
+If `config.py` fails to understand your environment, feel free to send a pull
+request.
+
+(2) Then do `cd test && make test` and see how things go.
+
+## Edison developer setup
+
+The Edison environment should be the Intel one, not the gnu one.  You should
+load these modules:
+
+    module load boost
+    module load cfitsio
+    module load gcc 
+
+Before you run `config.py` on Edison be sure to `module load python` to get a
+python 2.7 interpreter.
