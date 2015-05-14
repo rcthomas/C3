@@ -1,6 +1,5 @@
 
-CXX=CC
-CXXFLAGS=-std=c++11 -Wno-deprecated
+include ../Makefile
 
 # Google Test.
 

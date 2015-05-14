@@ -1,6 +1,6 @@
 # Makefile adapted from the Google test makefile.
 
-CXX=CC
+include ../../../Makefile
 
 # Points to the root of Google Test, relative to where this file is.  Remember
 # to tweak this if you move this file.
@@ -14,7 +14,8 @@ GTEST_DIR = ..
 CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # Flags passed to the C++ compiler.
-CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread
+
+CXXFLAGS += -g -Wall -Wextra -pthread
 
 # All Google Test headers.  Usually you shouldn't change this definition.
 
