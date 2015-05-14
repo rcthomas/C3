@@ -10,6 +10,8 @@ Parallel CCD preprocessing framework.
 `config.py` only needs to be run the first time you check out the repo or after
 you change `config.py` as it is the thing that generates the top-level
 Makefile.  A cmake or autotools build system would be nice in the future.
+If `config.py` fails to understand your environment, feel free to send a pull
+request.
 
 (2) Then do `cd test && make test` and see how things go.
 
