@@ -1,7 +1,7 @@
 
 # THIS IS ONLY A TEST
 
-You put the tests here.  You should name the test like
+You put framework (not app) tests here.  You should name the test like
 
     NNN-something-test.cc
 
