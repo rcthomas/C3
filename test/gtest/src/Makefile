@@ -18,8 +18,7 @@ CXXFLAGS += -std=c++11 -g -Wall -Wextra -pthread
 
 # All Google Test headers.  Usually you shouldn't change this definition.
 
-GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
-                $(GTEST_DIR)/include/gtest/internal/*.h
+GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h $(GTEST_DIR)/include/gtest/internal/*.h
 
 # Usually you shouldn't tweak such internal variables, indicated by a # trailing _.
 
@@ -40,8 +39,7 @@ $(TARGET) : gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
 
 gtest-all.o : $(GTEST_SRCS_)
-	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
-            $(GTEST_DIR)/src/gtest-all.cc
+	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c $(GTEST_DIR)/src/gtest-all.cc
 
 install : $(TARGET)
 	mkdir -p $(GTEST_INSTALL); cp $(TARGET) $(GTEST_INSTALL)/.

@@ -7,3 +7,4 @@ clean :
 
 realclean :
 	cd src; make realclean
+	rm -rf lib
