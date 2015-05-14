@@ -2,10 +2,8 @@
 TARGET = \
     decam-preprocess-science
 
-# I hope we can use the Intel compiler at NERSC to get the best performance.
-
-CXX=CC
-CXXFLAGS+=-std=c++11 -qopenmp -Wno-deprecated
+include ../../Makefile
+CXXFLAGS+= -qopenmp -Wno-deprecated
 
 # Need boost for yaml-cpp; NERSC module.  Developer is factoring out the boost
 # dependency.
