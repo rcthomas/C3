@@ -32,19 +32,19 @@ GTEST_INSTALL=$(GTEST_DIR)/lib
 # This is fine as Google Test compiles fast and for ordinary users its source
 # rarely changes.
 
-TARGET=gtest.a
+TARGET=libgtest.a
 
 all : $(TARGET)
+
+$(TARGET) : gtest-all.o
+	$(AR) $(ARFLAGS) $@ $^
 
 gtest-all.o : $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
             $(GTEST_DIR)/src/gtest-all.cc
 
-gtest.a : gtest-all.o
-	$(AR) $(ARFLAGS) $@ $^
-
-install : gtest.a
-	mkdir -p $(GTEST_INSTALL); cp gtest.a $(GTEST_INSTALL)/.
+install : $(TARGET)
+	mkdir -p $(GTEST_INSTALL); cp $(TARGET) $(GTEST_INSTALL)/.
 
 clean :
 	rm -rf *.o
