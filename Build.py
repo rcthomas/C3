@@ -70,13 +70,14 @@ class MakefileFactory ( object ) :
                     continue
                 makefile_type = key
         if makefile_type is None :
-            raise NotImplementedError( "unrecognized environment" )
+#           raise NotImplementedError( "unrecognized environment" )
+            makefile_type = "other"
         makefile_class = self.registry[ makefile_type ]
         return makefile_class( kwargs )
 
 if __name__ == "__main__" :
 
-    factory  = MakefileFactory( edison = EdisonMakefile, clang = ClangMakefile )
+    factory  = MakefileFactory( edison = EdisonMakefile, clang = ClangMakefile, other = OtherMakefile )
     makefile = factory.create()
     with open( "Makefile", "w" ) as stream :
         stream.write( "{}".format( makefile ) )
