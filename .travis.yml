@@ -1,8 +1,6 @@
 language: cpp
 compiler:
     - clang
+    - gcc
 # Change this to your needs
 script: ./Build.py && make test
-before_install:
-    - sudo apt-get update -qq
-    - sudo apt-get install -qq clang

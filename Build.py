@@ -53,8 +53,8 @@ class OtherMakefile ( Makefile ) :
 
     def __init__( self, cxx = None, cxxflags = None ) :
         import pprint
-        pprint.pprint( os.environ )
-        cxx      = cxx      or "clang++"
+        pprint.pprint( os.uname )
+        cxx      = cxx      or "$(CXX)"
         cxxflags = cxxflags or "-std=c++11 -O3"
         super( OtherMakefile, self ).__init__( cxx, cxxflags )
 
