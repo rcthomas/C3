@@ -44,19 +44,15 @@ class ClangMakefile ( Makefile ) :
         cxxflags = cxxflags or "-std=c++11 -O3"
         super( ClangMakefile, self ).__init__( cxx, cxxflags )
 
-class OtherMakefile ( Makefile ) :
+class TravisMakefile ( Makefile ) :
 
     @classmethod
     def is_match( cls ) :
-        uname = os.uname()
-        return uname[ 0 ].lower() == "darwin"
+        return len( filter( lambda x : x.startswith( "TRAVIS_" ), os.environ.keys() ) ) > 0
 
     def __init__( self, cxx = None, cxxflags = None ) :
-        import pprint
-        pprint.pprint( os.uname() )
-        cxx      = None
         cxxflags = cxxflags or "-std=c++11 -O3"
-        super( OtherMakefile, self ).__init__( cxx, cxxflags )
+        super( TravisMakefile, self ).__init__( cxx, cxxflags )
 
 class MakefileFactory ( object ) :
 
@@ -70,14 +66,13 @@ class MakefileFactory ( object ) :
                     continue
                 makefile_type = key
         if makefile_type is None :
-#           raise NotImplementedError( "unrecognized environment" )
-            makefile_type = "other"
+            raise NotImplementedError( "unrecognized environment" )
         makefile_class = self.registry[ makefile_type ]
         return makefile_class( kwargs )
 
 if __name__ == "__main__" :
 
-    factory  = MakefileFactory( edison = EdisonMakefile, clang = ClangMakefile, other = OtherMakefile )
+    factory  = MakefileFactory( edison = EdisonMakefile, clang = ClangMakefile, travis = TravisMakefile )
     makefile = factory.create()
     with open( "Makefile", "w" ) as stream :
         stream.write( "{}".format( makefile ) )
