@@ -10,7 +10,7 @@ class Makefile ( object ) :
 
     def __repr__( self ) :
         output =  "# {}\n\n".format( self.__class__.__name__ )
-        output += "{:10} = {}\n".format( "CXX"       , self.cxx      )
+        output += "{:10} = {}\n".format( "CXX"       , self.cxx      ) if self.cxx else ""
         output += "{:10} = {}\n".format( "CXXFLAGS"  , self.cxxflags )
         output += "\n"
         output += "none :\n\n"
@@ -53,8 +53,8 @@ class OtherMakefile ( Makefile ) :
 
     def __init__( self, cxx = None, cxxflags = None ) :
         import pprint
-        pprint.pprint( os.uname )
-        cxx      = cxx      or "$(CXX)"
+        pprint.pprint( os.uname() )
+        cxx      = None
         cxxflags = cxxflags or "-std=c++11 -O3"
         super( OtherMakefile, self ).__init__( cxx, cxxflags )
 
