@@ -15,10 +15,10 @@ class Makefile ( object ) :
         output += "\n"
         output += "all :\n\n"
         output += "test :\n"
-        output += "\tcd t && make test\n\n"
+        output += "\tcd testing && make test\n\n"
         output += "distclean :\n"
         output += "\tcd app/decam && make realclean\n"
-        output += "\tcd test && make deepclean\n"
+        output += "\tcd testing && make deepclean\n"
         return output
 
 class EdisonMakefile ( Makefile ) :
