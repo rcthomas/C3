@@ -44,6 +44,20 @@ class ClangMakefile ( Makefile ) :
         cxxflags = cxxflags or "-std=c++11 -O3"
         super( ClangMakefile, self ).__init__( cxx, cxxflags )
 
+class OtherMakefile ( Makefile ) :
+
+    @classmethod
+    def is_match( cls ) :
+        uname = os.uname()
+        return uname[ 0 ].lower() == "darwin"
+
+    def __init__( self, cxx = None, cxxflags = None ) :
+        import pprint
+        pprint.pprint( os.environ )
+        cxx      = cxx      or "clang"
+        cxxflags = cxxflags or "-std=c++11 -O3"
+        super( OtherMakefile, self ).__init__( cxx, cxxflags )
+
 class MakefileFactory ( object ) :
 
     def __init__( self, **kwargs ) :
