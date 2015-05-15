@@ -1,6 +1,6 @@
 
-C3
-==
+# C3
+[![Build Status](https://travis-ci.org/rcthomas/C3.svg?branch=master)](https://travis-ci.org/rcthomas/C3)
 
 Parallel CCD preprocessing framework.  
 
