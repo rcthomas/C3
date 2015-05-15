@@ -4,7 +4,7 @@ include ../Makefile
 # Google Test.
 
 GTEST_DIR=./gtest
-CXXFLAGS += -I$(GTEST_DIR)/include
+CXXFLAGS += -I$(GTEST_DIR)/include -pthread
 LDFLAGS  += -L$(GTEST_DIR)/lib
 LIBS     += -lgtest
 
