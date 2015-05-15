@@ -13,9 +13,9 @@ class Makefile ( object ) :
         output += "{:10} = {}\n".format( "CXX"       , self.cxx      )
         output += "{:10} = {}\n".format( "CXXFLAGS"  , self.cxxflags )
         output += "\n"
-        output += "all :\n\n"
+        output += "none :\n\n"
         output += "test :\n"
-        output += "\tcd testing && make test\n\n"
+        output += "\tcd testing && make all\n\n"
         output += "distclean :\n"
         output += "\tcd app/decam && make realclean\n"
         output += "\tcd testing && make deepclean\n"

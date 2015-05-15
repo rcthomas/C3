@@ -18,8 +18,6 @@ CXXFLAGS += -I$(C3_DIR)/include
 TARGETS=$(patsubst %-test.cc,%-test,$(wildcard *-test.cc))
 
 all : gtest $(TARGETS)
-
-test : gtest
 	$(foreach target,$(TARGETS),make $(target) && ./$(target);)
 
 %-test : %-test.cc
