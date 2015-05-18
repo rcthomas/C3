@@ -148,6 +148,26 @@ TEST( BlockTest, DataAccessWorks )
 
 }
 
+TEST( BlockTest, BeginWorks )
+{
+
+    size_t size = 5;
+    C3::Block< size_t > block( size );
+
+    EXPECT_EQ( block.data(), block.begin() );
+
+}
+
+TEST( BlockTest, EndWorks )
+{
+
+    size_t size = 5;
+    C3::Block< size_t > block( size );
+
+    EXPECT_EQ( block.data() + block.size(), block.end() );
+
+}
+
 TEST( BlockTest, CastWorks )
 {
 

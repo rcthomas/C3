@@ -56,6 +56,12 @@ namespace C3
             T*       data( const size_type offset = 0 )       { return _data + offset; }
             ///@}
 
+            /// Begin and end of data.
+            ///@{
+            const T* begin() const { return _data +     0; }
+            const T* end()   const { return _data + _size; }
+            ///@}
+
             /// Cast to block of another type.
             template< typename U > operator Block< U > () const;
 
