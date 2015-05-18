@@ -65,6 +65,16 @@ namespace C3
             /// Cast to block of another type.
             template< typename U > operator Block< U > () const;
 
+            /// Assign a scalar to the entire block.
+            void assign( const T& source );
+
+            /// Assign a scalar to a chunk of the block.
+            void assign( const T& source, const size_type offset, const size_type size );
+
+            /// Assign a scalar to regularly spaced chunks of the block.
+            void assign( const T& source, const size_type offset, const size_type size, 
+                    const size_type stride, const size_type repeat );
+
         private :
 
             size_type   _size;  ///< Number of elements.

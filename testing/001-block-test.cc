@@ -180,6 +180,89 @@ TEST( BlockTest, CastWorks )
 
 }
 
+TEST( BlockTest, AssignScalarWorks )
+{
+
+    size_t size = 5;
+    C3::Block< size_t > block( size );
+    block.assign( 3 );
+
+    for( size_t i = 0; i < size; ++ i ) EXPECT_EQ( 3, block[ i ] );
+
+}
+
+TEST( BlockTest, AssignScalarToChunkWorks )
+{
+
+    size_t size = 5;
+    C3::Block< size_t > block( size );
+    block.assign( 1 );
+    block.assign( 3, 2, 3 );
+
+    EXPECT_EQ( 1, block[ 0 ] );
+    EXPECT_EQ( 1, block[ 1 ] );
+    EXPECT_EQ( 3, block[ 2 ] );
+    EXPECT_EQ( 3, block[ 3 ] );
+    EXPECT_EQ( 3, block[ 4 ] );
+
+}
+
+TEST( BlockDeathTest, AssignScalarToChunkBadOffset )
+{
+    size_t size = 5;
+    C3::Block< size_t > block( size );
+    EXPECT_DEATH( block.assign( 3, size + 5, 5 ), "begin < this->end()" );
+}
+
+TEST( BlockDeathTest, AssignScalarToChunkBadSize )
+{
+    size_t size = 5;
+    C3::Block< size_t > block( size );
+    EXPECT_DEATH( block.assign( 3, 2, size + 5 ), "end <= this->end()" );
+}
+
+TEST( BlockTest, AssignScalarToSpacedChunksWorks )
+{
+
+    size_t size = 10;
+    C3::Block< size_t > block( size );
+    block.assign( 1 );
+    block.assign( 3, 1, 3, 5, 2 );
+
+    EXPECT_EQ( 1, block[ 0 ] );
+    EXPECT_EQ( 3, block[ 1 ] );
+    EXPECT_EQ( 3, block[ 2 ] );
+    EXPECT_EQ( 3, block[ 3 ] );
+    EXPECT_EQ( 1, block[ 4 ] );
+    EXPECT_EQ( 1, block[ 5 ] );
+    EXPECT_EQ( 3, block[ 6 ] );
+    EXPECT_EQ( 3, block[ 7 ] );
+    EXPECT_EQ( 3, block[ 8 ] );
+    EXPECT_EQ( 1, block[ 9 ] );
+
+}
+
+TEST( BlockDeathTest, AssignScalarToSpacedChunkBadStrideOrSize )
+{
+    size_t size = 10;
+    C3::Block< size_t > block( size );
+    EXPECT_DEATH( block.assign( 3, 5, 6, 5, 2 ), "size <= stride" );
+}
+
+TEST( BlockDeathTest, AssignScalarToSpacedChunkBadOffset )
+{
+    size_t size = 10;
+    C3::Block< size_t > block( size );
+    EXPECT_DEATH( block.assign( 3, size + 5, 3, 5, 2 ), "begin < this->end()" );
+}
+
+// TEST( BlockDeathTest, AssignScalarToSpacedChunkBadSize )
+// {
+//     size_t size = 10;
+//     C3::Block< size_t > block( size );
+//     EXPECT_DEATH( block.assign( 3, 1, size + 5, size + 6, 2 ), "end + ( repeat - 1 ) * stride <= this->end()" );
+// }
+
 int main( int argc, char* argv[] )
 {
     ::testing::InitGoogleTest( &argc, argv );

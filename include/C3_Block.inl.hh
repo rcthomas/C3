@@ -78,3 +78,42 @@ inline C3::Block< T >::operator C3::Block< U > () const
     std::copy( _data, _data + _size, block.data() );
     return block;
 }
+
+// Assign a scalar to the entire block.
+
+template< typename T >
+inline void C3::Block< T >::assign( const T& source )
+{
+    std::fill( _data, _data + _size, source );
+}
+
+// Assign a scalar to a chunk of the block.
+
+template< typename T >
+inline void C3::Block< T >::assign( const T& source, const size_type offset, const size_type size )
+{
+    T* begin = _data + offset;
+    T* end   = begin + size;
+    assert( begin < this->end() );
+    assert( end <= this->end()  );
+    std::fill( begin, end, source );
+}
+
+// Assign a scalar to regularly spaced chunks of the block.
+
+template< typename T >
+inline void C3::Block< T >::assign( const T& source, const size_type offset, const size_type size, 
+        const size_type stride, const size_type repeat )
+{
+    assert( size <= stride );
+    T* begin = _data + offset;
+    T* end   = begin + size;
+    assert( begin < this->end() );
+    assert( end + ( repeat - 1 ) * stride <= this->end() );
+    for( size_type i = 0; i < repeat; ++ i )
+    {
+        std::fill( begin, end, source );
+        begin += stride;
+        end   += stride;
+    }
+}
