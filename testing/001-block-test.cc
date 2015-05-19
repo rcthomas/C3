@@ -209,6 +209,7 @@ TEST( BlockTest, AssignScalarToChunkWorks )
 
 TEST( BlockDeathTest, AssignScalarToChunkBadOffset )
 {
+    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
     size_t size = 5;
     C3::Block< size_t > block( size );
     EXPECT_DEATH( block.assign( 3, size + 5, 5 ), "begin < this->end()" );
@@ -216,6 +217,7 @@ TEST( BlockDeathTest, AssignScalarToChunkBadOffset )
 
 TEST( BlockDeathTest, AssignScalarToChunkBadSize )
 {
+    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
     size_t size = 5;
     C3::Block< size_t > block( size );
     EXPECT_DEATH( block.assign( 3, 2, size + 5 ), "end <= this->end()" );
@@ -244,6 +246,7 @@ TEST( BlockTest, AssignScalarToSpacedChunksWorks )
 
 TEST( BlockDeathTest, AssignScalarToSpacedChunkBadStrideOrSize )
 {
+    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
     size_t size = 10;
     C3::Block< size_t > block( size );
     EXPECT_DEATH( block.assign( 3, 5, 6, 5, 2 ), "size <= stride" );
@@ -251,6 +254,7 @@ TEST( BlockDeathTest, AssignScalarToSpacedChunkBadStrideOrSize )
 
 TEST( BlockDeathTest, AssignScalarToSpacedChunkBadOffset )
 {
+    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
     size_t size = 10;
     C3::Block< size_t > block( size );
     EXPECT_DEATH( block.assign( 3, size + 5, 3, 5, 2 ), "begin < this->end()" );
@@ -258,6 +262,7 @@ TEST( BlockDeathTest, AssignScalarToSpacedChunkBadOffset )
 
 // TEST( BlockDeathTest, AssignScalarToSpacedChunkBadSize )
 // {
+//    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 //     size_t size = 10;
 //     C3::Block< size_t > block( size );
 //     EXPECT_DEATH( block.assign( 3, 1, size + 5, size + 6, 2 ), "end + ( repeat - 1 ) * stride <= this->end()" );
@@ -266,5 +271,6 @@ TEST( BlockDeathTest, AssignScalarToSpacedChunkBadOffset )
 int main( int argc, char* argv[] )
 {
     ::testing::InitGoogleTest( &argc, argv );
+    ::testing::FLAGS_gtest_death_test_style = "fast";
     return RUN_ALL_TESTS();
 }
