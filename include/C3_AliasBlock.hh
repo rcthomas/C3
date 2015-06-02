@@ -12,8 +12,7 @@ namespace C3
 
         public :    // Public type definitions.
 
-            using super_type = Block< T >;
-            using size_type  = typename super_type::size_type;  ///< Index and size type.
+            using super_type = Block< T >;                      ///< Super-class type.
             using value_type = typename super_type::value_type; ///< Content type.
 
         public :    // Public methods.

@@ -1,7 +1,7 @@
 #ifndef C3_BLOCK_HH
 #define C3_BLOCK_HH
 
-#include <cstdlib>
+#include "C3.hh"
 
 namespace C3
 {
@@ -17,8 +17,7 @@ namespace C3
 
         public :    // Public type definitions.
 
-            using size_type  = size_t;        ///< Index and size type.
-            using value_type = T;             ///< Content type.
+            using value_type = T; ///< Content type.
 
         public :    // Public methods.
 
