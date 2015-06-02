@@ -122,32 +122,6 @@ inline int C3::Environment< DetectorPolicy >::finalize()
     return EXIT_SUCCESS;
 }
 
-// Constructor.
-
-template< class DetectorPolicy >
-inline C3::Environment< DetectorPolicy >::Environment()
-{}
-
-// Copy constructor.
-
-template< class DetectorPolicy >
-inline C3::Environment< DetectorPolicy >::Environment( const C3::Environment< DetectorPolicy >& env )
-{}
-
-// Destructor.
-
-template< class DetectorPolicy >
-inline C3::Environment< DetectorPolicy >::~Environment()
-{}
-
-// Assignment.
-
-template< class DetectorPolicy >
-inline C3::Environment< DetectorPolicy >& C3::Environment< DetectorPolicy >::operator = ( const C3::Environment< DetectorPolicy >& env )
-{
-    return *this;
-}
-
 // Initialize singleton.
 
 template< class DetectorPolicy >

@@ -1,19 +1,11 @@
-#ifndef C3__FRAMEWORK__HH
-#define C3__FRAMEWORK__HH
+#ifndef C3_HH
+#define C3_HH
 
-#include "C3_Application.hh"
-#include "C3_Communicator.hh"
-#include "C3_Environment.hh"
-#include "C3_Exception.hh"
+#include <cstdlib>
 
-#include "C3_Block.hh"
-#include "C3_Column.hh"
-#include "C3_Image.hh"
-#include "C3_Row.hh"
-#include "C3_Stack.hh"
-#include "C3_View.hh"
-
-#include "C3_Operator.hh"
-#include "C3_Reduce.hh"
+namespace C3
+{
+    using size_type = size_t;
+}
 
 #endif

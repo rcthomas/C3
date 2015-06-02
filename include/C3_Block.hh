@@ -1,89 +1,69 @@
-#ifndef C3__BLOCK
-#define C3__BLOCK
+#ifndef C3_BLOCK_HH
+#define C3_BLOCK_HH
 
-#include <cstddef>
+#include "C3.hh"
 
 namespace C3
 {
 
     /// @class Block
-    /// @brief Native C++ type pixel array block.
+    /// @brief ...
+    ///
+    /// Long spiel here...
 
-    template< typename T >
+    template< class T >
     class Block
     {
 
-        public :
+        public :    // Public type definitions.
 
-            /// Index and size type.
-            typedef size_t size_type;
-            
-            /// Pixel type.
-            typedef T value_type;
+            using value_type = T; ///< Content type.
 
-        public :
+        public :    // Public methods.
 
-            /// Constructor for uninitialized block.
-            explicit Block( const size_type size ) noexcept;
+            /// Array subscript access.
+            ///@{
+            value_type& operator [] ( const size_type pos )       { return _data[ pos ]; }
+            value_type  operator [] ( const size_type pos ) const { return _data[ pos ]; }
+            ///@}
 
-            /// Deep copy constructor.
-            Block( const Block& block ) noexcept;
-
-            /// Move constructor.
-            Block( Block&& block ) noexcept;
-
-            /// Deep copy assignment operator.
-            Block& operator = ( const Block& block ) noexcept;
-
-            /// Move assignment operator.
-            Block& operator = ( Block&& block ) noexcept;
-
-            /// Destructor.
-            ~Block();
-
-            /// Number of elements.
+            /// Total elements.
             size_type size() const { return _size; }
 
-            /// Element access.
+            /// Native C++ array access.
             ///@{
-            T  operator [] ( const size_type pos ) const { return _data[ pos ]; }
-            T& operator [] ( const size_type pos )       { return _data[ pos ]; }
+                  value_type* data()       { return _data; }
+            const value_type* data() const { return _data; }
             ///@}
 
-            /// Data access from offset.
+            /// Start of native C++ array.
             ///@{
-            const T* data( const size_type offset = 0 ) const { return _data + offset; }
-            T*       data( const size_type offset = 0 )       { return _data + offset; }
+                  value_type* begin()       { return data(); }
+            const value_type* begin() const { return data(); }
+            ///@}
+           
+            /// End of native C++ array.
+            ///@{
+                  value_type* end()       { return data() + size(); }
+            const value_type* end() const { return data() + size(); }
             ///@}
 
-            /// Begin and end of data.
-            ///@{
-            const T* begin() const { return _data +     0; }
-            const T* end()   const { return _data + _size; }
-            ///@}
+        protected : // Protected methods.
 
-            /// Cast to block of another type.
-            template< typename U > operator Block< U > () const;
+            /// Constructor.
+            Block( const size_type size, value_type* data ) noexcept :
+                _size( size ), _data( data ) {}
 
-            /// Assign a scalar to the entire block.
-            void assign( const T& source );
+            /// Destructor.
+            ~Block() = default;
 
-            /// Assign a scalar to a chunk of the block.
-            void assign( const T& source, const size_type offset, const size_type size );
+        protected : // Protected data members.
 
-            /// Assign a scalar to regularly spaced chunks of the block.
-            void assign( const T& source, const size_type offset, const size_type size, 
-                    const size_type stride, const size_type repeat );
-
-        private :
-
-            size_type   _size;  ///< Number of elements.
-            T*          _data;  ///< Pixel values.
+            size_type   _size;  ///< Total elements.
+            value_type* _data;  ///< Content.
 
     };
 
 }
-
-#include "C3_Block.inl.hh"
 
 #endif
