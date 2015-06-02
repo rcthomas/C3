@@ -1,5 +1,5 @@
-#ifndef C3__EXCEPTION
-#define C3__EXCEPTION
+#ifndef C3_EXCEPTION_HH
+#define C3_EXCEPTION_HH
 
 #include <stdexcept>
 
@@ -15,12 +15,10 @@ namespace C3
         public :
 
             /// Constructor.
-            Exception( const std::string& message );
+            Exception( const std::string& message ) : std::runtime_error( message ) {}
 
     };
 
 }
-
-#include "C3_Exception.inl.hh"
 
 #endif

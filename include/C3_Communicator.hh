@@ -1,5 +1,5 @@
-#ifndef C3__COMMUNICATOR
-#define C3__COMMUNICATOR
+#ifndef C3_COMMUNICATOR_HH
+#define C3_COMMUNICATOR_HH
 
 #include "C3_MPI.hh"
 
@@ -12,19 +12,10 @@ namespace C3
     class Communicator
     {
 
-        public :
+        public :    // Public methods.
         
             /// Constructor.
-            Communicator( MPI_Comm comm );
-        
-            /// Copy constructor.
-            Communicator( const Communicator& comm );
-        
-            /// Destructor.
-            ~Communicator();
-        
-            /// Assignment.
-            Communicator& operator = ( const Communicator& comm );
+            explicit Communicator( MPI_Comm comm );
         
             /// Underlying opaque MPI communicator.
             MPI_Comm comm() const { return _comm; }
@@ -38,7 +29,7 @@ namespace C3
             /// True if this MPI process has rank zero.
             bool root() const { return _root; }
         
-        private :
+        private :   // Private data members.
         
             MPI_Comm    _comm;  ///< Underlying opaque MPI communicator object.
             int         _size;  ///< Number of MPI processes in communicator.

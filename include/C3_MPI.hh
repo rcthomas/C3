@@ -1,5 +1,5 @@
-#ifndef C3__MPI
-#define C3__MPI
+#ifndef C3_MPI_HH
+#define C3_MPI_HH
 
 namespace C3
 {

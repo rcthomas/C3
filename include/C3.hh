@@ -1,19 +1,16 @@
-#ifndef C3__FRAMEWORK__HH
-#define C3__FRAMEWORK__HH
-
-#include "C3_Application.hh"
-#include "C3_Communicator.hh"
-#include "C3_Environment.hh"
-#include "C3_Exception.hh"
+#ifndef C3_HH
+#define C3_HH
 
 #include "C3_Block.hh"
+#include "C3_AliasBlock.hh"
+#include "C3_OwnedBlock.hh"
+
+// #include "C3_Apply.hh"
+#include "C3_Assign.hh"
+
 #include "C3_Column.hh"
-#include "C3_Image.hh"
+#include "C3_Frame.hh"
 #include "C3_Row.hh"
 #include "C3_Stack.hh"
-#include "C3_View.hh"
-
-#include "C3_Operator.hh"
-#include "C3_Reduce.hh"
 
 #endif

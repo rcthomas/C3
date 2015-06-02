@@ -1,5 +1,5 @@
-#ifndef C3__ENVIRONMENT
-#define C3__ENVIRONMENT
+#ifndef C3_ENVIRONMENT_HH
+#define C3_ENVIRONMENT_HH
 
 #include <memory>
 #include <vector>
@@ -16,7 +16,19 @@ namespace C3
     class Environment
     {
 
-        public :
+        public :    // Public methods.
+
+            /// Copy constructor.
+            Environment( const Environment& env ) = delete;
+
+            /// Move constructor.
+            Environment( Environment&& env ) = delete;
+
+            /// Copy assignment.
+            Environment& operator = ( const Environment& env ) = delete;
+
+            /// Move assignment.
+            Environment& operator = ( Environment&& env ) = delete;
     
             /// Start-up access point.
             static Environment& instance( int& argc, char**& argv );
@@ -43,19 +55,13 @@ namespace C3
             /// Shutdown.
             int finalize();
 
-        private :
+        private :   // Private methods.
 
             /// Constructor.
-            Environment();
-    
-            /// Copy constructor.
-            Environment( const Environment& env );
+            Environment() = default;
     
             /// Destructor.
-            ~Environment();
-    
-            /// Assignment.
-            Environment& operator = ( const Environment& env );
+            ~Environment() = default;
     
             /// Initializers for various components.
             ///@{
@@ -74,7 +80,7 @@ namespace C3
             /// Hostname of each process in an MPI communicator in rank order.
             std::vector< std::string > _gather_hostnames( const C3::Communicator& comm );
 
-        private :
+        private :   // Private data members.
 
             std::unique_ptr< C3::Communicator > _world;     ///< All MPI processes contained at startup.
             std::unique_ptr< C3::Communicator > _frame;     ///< MPI processes actively handling frames.

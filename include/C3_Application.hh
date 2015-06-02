@@ -1,5 +1,5 @@
-#ifndef C3__APPLICATION
-#define C3__APPLICATION
+#ifndef C3_APPLICATION_HH
+#define C3_APPLICATION_HH
 
 namespace C3
 {
@@ -11,6 +11,7 @@ namespace C3
     struct Application
     {
 
+        /// Execute application, return an exit code.
         static int run( int& argc, char**& argv );
 
     };

@@ -1,92 +1,40 @@
-#ifndef C3__ROW
-#define C3__ROW
+#ifndef C3_ROW_HH
+#define C3_ROW_HH
+
+#include "C3_OwnedBlock.hh"
 
 namespace C3
 {
 
-    /// @class Row
-    /// @brief Horizontal semantic arrangement of pixels.
+    /// @class
+    /// @brief Horizontal arrangement of pixels.
 
-    template< typename T >
-    class Row
+    template< class T >
+    class Row : public OwnedBlock< T >
     {
 
-        public :
+        public :    // Public type definitions.
 
-            /// Pixel type.
-            typedef T value_type;
+            using super_type = OwnedBlock< T >;
+            using size_type  = typename super_type::size_type;
+            using value_type = typename super_type::value_type;
 
-            /// Create uninitialized row.
-            static Row create( const size_t size );
-
-            /// Create row and initialize with a scalar value.
-            static Row create( const size_t size, const T scalar );
-
-            /// Constructor, copy.
-            Row( const Row& row );
-
-            /// Destructor.
-            ~Row();
-
-            /// Size.
-            ///@{
-            size_t ncols() const { return _size; }
-            size_t nrows() const { return     1; }
-            size_t size()  const { return _size; }
-            ///@}
-
-            /// Pixel access.
-            ///@{
-            T  operator () ( const size_t j ) const { return _data[ j ]; }
-            T& operator () ( const size_t j )       { return _data[ j ]; }
-            ///@}
-
-            /// Data access.
-            ///@{
-            T*       data()       { return _data; }
-            const T* data() const { return _data; }
-            ///@}
-
-            /// Operators, row argument.
-            ///@{
-            Row& operator =  ( const Row& row );
-            Row& operator += ( const Row& row );
-            Row& operator -= ( const Row& row );
-            Row& operator *= ( const Row& row );
-            Row& operator /= ( const Row& row );
-            bool operator == ( const Row& row ) const;
-            bool operator != ( const Row& row ) const;
-            ///@}
-
-            /// Operators, scalar argument.
-            ///@{
-            Row& operator =  ( const T scalar );
-            Row& operator += ( const T scalar );
-            Row& operator -= ( const T scalar );
-            Row& operator *= ( const T scalar );
-            Row& operator /= ( const T scalar );
-            bool operator == ( const T scalar ) const;
-            bool operator != ( const T scalar ) const;
-            ///@}
-
-            /// Cast to row of another type.
-            template< typename U > operator Row< U > () const;
-
-        private :
+        public :    // Public methods.
 
             /// Constructor.
-            Row( const size_t size, T* data );
+            explicit Row( const size_type ncolumns ) noexcept : super_type( ncolumns ) {}
 
-            size_t  _size; ///< Number of pixels.
-            T*      _data; ///< Raw pixels.
+            /// Number of columns.
+            size_type ncolumns() const { return this->size(); }
+
+            /// Coordinate access.
+            ///@{
+            value_type& operator() ( const size_type j )       { return (*this)[ j ]; }
+            value_type  operator() ( const size_type j ) const { return (*this)[ j ]; }
+            ///@}
 
     };
 
-    /// Stream output.
-    template< typename T > std::ostream& operator << ( std::ostream& stream, const Row< T >& row );
-
 }
-
-#include "C3_Row.inl.hh"
 
 #endif
