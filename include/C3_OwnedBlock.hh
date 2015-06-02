@@ -7,12 +7,12 @@ namespace C3
 {
 
     template< class T >
-    class OwnedBlock : public Block< OwnedBlock< T > >
+    class OwnedBlock : public Block< T >
     {
 
         public :    // Public type definitions.
 
-            using super_type = Block< OwnedBlock< T > >;
+            using super_type = Block< T >;
             using size_type  = typename super_type::size_type;  ///< Index, size type.
             using value_type = typename super_type::value_type; ///< Content type.
 

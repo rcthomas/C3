@@ -3,13 +3,6 @@
 
 #include <cstdlib>
 
-// Forward declaration.
-
-namespace C3
-{
-    template< class Derived > class Block;
-}
-
 namespace C3
 {
 
@@ -18,15 +11,14 @@ namespace C3
     ///
     /// Long spiel here...
 
-    template< class T, template< class > class Derived >
-    class Block< Derived< T > >
+    template< class T >
+    class Block
     {
 
         public :    // Public type definitions.
 
-            using size_type    = size_t;        ///< Index and size type.
-            using value_type   = T;             ///< Content type.
-            using derived_type = Derived< T >;  ///< Derived class type.
+            using size_type  = size_t;        ///< Index and size type.
+            using value_type = T;             ///< Content type.
 
         public :    // Public methods.
 
@@ -65,14 +57,6 @@ namespace C3
 
             /// Destructor.
             ~Block() = default;
-
-        private :   // Private methods.
-
-            /// Cast to derived type.
-            ///@{
-                  derived_type* _self()       { return static_cast<       derived_type* >(this); }
-            const derived_type* _self() const { return static_cast< const derived_type* >(this); }
-            ///@}
 
         protected : // Protected data members.
 

@@ -7,16 +7,14 @@ namespace C3
 {
 
     template< class T >
-    class AliasBlock : public Block< AliasBlock< T > >
+    class AliasBlock : public Block< T >
     {
 
         public :    // Public type definitions.
 
-            using super_type = Block< AliasBlock< T > >;
+            using super_type = Block< T >;
             using size_type  = typename super_type::size_type;  ///< Index and size type.
             using value_type = typename super_type::value_type; ///< Content type.
-
-            friend super_type;  ///< Grant protected access to super-class.
 
         public :    // Public methods.
 
