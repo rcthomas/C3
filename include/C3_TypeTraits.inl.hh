@@ -3,6 +3,7 @@
 
 namespace C3
 {
+    template< class T > class OwnedBlock;
     template< class T > class Column;
     template< class T > class Row;
     template< class T > class Frame;
