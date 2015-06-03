@@ -25,7 +25,8 @@ namespace C3
         public :    // Public methods.
 
             /// Constructor.
-            explicit Stack( const size_type nframes, const size_type ncolumns, const size_type nrows ) noexcept : super_type( nframes * ncolumns * nrows ) {}
+            explicit Stack( const size_type nframes, const size_type ncolumns, const size_type nrows ) noexcept : 
+                super_type( nframes * ncolumns * nrows ), _nframes( nframes ), _ncolumns( ncolumns ), _nrows( nrows ) {}
 
             /// Total frames, columns, rows.
             ///@{
@@ -36,8 +37,8 @@ namespace C3
 
             /// Coordinate access.
             ///@{
-            value_type& operator() ( const size_type i, const size_type j, const size_type k )       { return (*this)[ i + _nrows * ( j + _ncolumns * k ) ]; }
-            value_type  operator() ( const size_type i, const size_type j, const size_type k ) const { return (*this)[ i + _nrows * ( j + _ncolumns * k ) ]; }
+            value_type& operator() ( const size_type i, const size_type j, const size_type k )       { return (*this)[ i + _nframes * ( j + _ncolumns * k ) ]; }
+            value_type  operator() ( const size_type i, const size_type j, const size_type k ) const { return (*this)[ i + _nframes * ( j + _ncolumns * k ) ]; }
             ///@}
 
         private :   // Private data members.
