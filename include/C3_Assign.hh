@@ -1,6 +1,8 @@
 #ifndef C3_ASSIGN_HH
 #define C3_ASSIGN_HH
 
+#include "C3.hh"
+
 namespace C3
 {
 
