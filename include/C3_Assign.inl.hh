@@ -10,7 +10,7 @@ template< class Destination, class Source >
 inline Destination& C3::assign( Destination& dest, const Source& src )
 {
     static_assert( C3::IsAssignable< Destination, Source >::value, "assignment between incompatible types" );
-    return C3::Detail::Assign< Destination, Source, C3::IsCompatibleScalar< Destination, Source >::value >::assign( dest, src );
+    return C3::Detail::Assign< Destination, Source, C3::IsCompatibleScalar< typename Destination::value_type, Source >::value >::assign( dest, src );
 }
 
 // Primary assignment template.  Covers Column->Frame, Column->Stack,
