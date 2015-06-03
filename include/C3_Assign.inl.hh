@@ -70,7 +70,7 @@ struct C3::Detail::Assign< C3::Stack< T >, C3::Row< T > >
     static C3::Stack< T >& assign( C3::Stack< T >& dest, const C3::Row< T >& src )
     { 
         assert( dest.ncolumns() == src.ncolumns() );
-        C3::Block< T > tmp( dest.nframes() * dest.ncolumns() );
+        C3::OwnedBlock< T > tmp( dest.nframes() * dest.ncolumns() );
         return C3::Detail::copy_assign( dest, C3::Detail::fill_assign( tmp, src, dest.nframes() ), dest.nrows() );
     }
 };
