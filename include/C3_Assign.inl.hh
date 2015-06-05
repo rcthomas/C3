@@ -1,87 +1,67 @@
 
-#include <algorithm>
 #include <cassert>
 
-#include "C3_TypeTraits.hh"
-
-// Assign source to destination, optimized on argument types.
+#include "C3_Congruent.hh"
 
 template< class Destination, class Source >
 inline Destination& C3::assign( Destination& dest, const Source& src )
 {
-    static_assert( C3::IsAssignable< Destination, Source >::value, "assignment between incompatible types" );
-    return C3::Detail::Assign< Destination, Source, C3::IsCompatibleScalar< typename Destination::value_type, Source >::value >::assign( dest, src );
+    assert( C3::congruent( dest, src ) );
+    typename C3::OperationTraits< Destination, Source >::assignment_type assignment;
+    return C3::Detail::assign( dest, src, assignment ); 
 }
 
-// Primary assignment template.  Covers Column->Frame, Column->Stack,
-// and Frame->Stack.
-
-template< class Destination, class Source, bool ScalarSource >
-struct C3::Detail::Assign
-{
-    static Destination& assign( Destination& dest, const Source& src )
-    { 
-        assert( ! ( dest.size() % src.size() ) );
-        return C3::Detail::fill_assign( dest, src, dest.size() / src.size() ); 
-    }
-};
-
-// Scalar assignment template.  Covers Scalar->Column, Scalar->Row,
-// Scalar->Frame, Scalar->Stack.
+// Tag dispatch.
 
 template< class Destination, class Source >
-struct C3::Detail::Assign< Destination, Source, true >
+inline Destination& C3::Detail::assign( Destination& dest, const Source& src, FillAssignment )
 {
-    static Destination& assign( Destination& dest, const Source& src )
-    { 
-        return C3::Detail::fill_assign( dest, src );
-    }
-};
+    return C3::Detail::Kernel::fill_assign( dest, src );
+}
 
-// Matching container types template.  Covers Column, Row, Frame, and Stack.
-
-template< class Destination >
-struct C3::Detail::Assign< Destination, Destination >
+template< class Destination, class Source >
+inline Destination& C3::Detail::assign( Destination& dest, const Source& src, CopyAssignment )
 {
-    static Destination& assign( Destination& dest, const Destination& src )
-    { 
-        assert( dest.size() == src.size() );
-        return C3::Detail::copy_assign( dest, src, 1 ); 
-    }
-};
+    return C3::Detail::Kernel::copy_assign( dest, src, 1 );
+}
 
-// Covers Row->Frame.
-
-template< typename T >
-struct C3::Detail::Assign< C3::Frame< T >, C3::Row< T > >
+template< class Destination, class Source >
+inline Destination& C3::Detail::assign( Destination& dest, const Source& src, ColumnFrameAssignment )
 {
-    static C3::Frame< T >& assign( C3::Frame< T >& dest, const C3::Row< T >& src )
-    { 
-        assert( dest.ncolumns() == src.ncolumns() );
-        return C3::Detail::copy_assign( dest, src, dest.ncolumns() ); 
-    }
-};
+    return C3::Detail::Kernel::fill_assign( dest, src, dest.ncolumns() );
+}
 
-// Covers Row->Stack.
-
-template< typename T >
-struct C3::Detail::Assign< C3::Stack< T >, C3::Row< T > >
+template< class Destination, class Source >
+inline Destination& C3::Detail::assign( Destination& dest, const Source& src, ColumnStackAssignment )
 {
-    static C3::Stack< T >& assign( C3::Stack< T >& dest, const C3::Row< T >& src )
-    { 
-        assert( dest.ncolumns() == src.ncolumns() );
-        C3::OwnedBlock< T > tmp( dest.nframes() * dest.ncolumns() );
-        return C3::Detail::copy_assign( dest, C3::Detail::fill_assign( tmp, src, dest.nframes() ), dest.nrows() );
-    }
-};
+    return C3::Detail::Kernel::fill_assign( dest, src, dest.nframes() * dest.ncolumns() );
+}
 
-// --- All of the above functions should trickle down to one of the compute
-// --- kernels below.
+template< class Destination, class Source >
+inline Destination& C3::Detail::assign( Destination& dest, const Source& src, RowFrameAssignment )
+{
+    return C3::Detail::Kernel::copy_assign( dest, src, dest.nrows() );
+}
 
-// Simple fill-assignment kernel.
+template< class Destination, class Source >
+inline Destination& C3::Detail::assign( Destination& dest, const Source& src, RowStackAssignment )
+{
+    using value_type = typename ContainerTraits< Source >::value_type;
+    OwnedBlock< value_type > buffer( dest.nframes() * dest.ncolumns() );
+    buffer = C3::Detail::Kernel::fill_assign( buffer, src, dest.nframes() );
+    return C3::Detail::Kernel::copy_assign( dest, buffer, dest.nrows() );
+}
 
-template< class Destination >
-inline Destination& C3::Detail::fill_assign( Destination& dest, const typename Destination::value_type src )
+template< class Destination, class Source >
+inline Destination& C3::Detail::assign( Destination& dest, const Source& src, FrameStackAssignment )
+{
+    return C3::Detail::Kernel::fill_assign( dest, src, dest.nframes() );
+}
+
+// Simple fill-assignment kernel.  Fills a container by repeating a value.
+
+template< class Destination, class Source >
+inline Destination& C3::Detail::Kernel::fill_assign( Destination& dest, const Source& src )
 {
     std::fill( dest.begin(), dest.end(), src );
     return dest;
@@ -92,7 +72,7 @@ inline Destination& C3::Detail::fill_assign( Destination& dest, const typename D
 // soruce times number of copies.
 
 template< class Destination, class Source >
-inline Destination& C3::Detail::fill_assign( Destination& dest, const Source& src, const C3::size_type count )
+inline Destination& C3::Detail::Kernel::fill_assign( Destination& dest, const Source& src, const C3::size_type count )
 {
     typename Destination::value_type* begin = dest.begin();
     typename Destination::value_type* end   = begin + count;
@@ -110,7 +90,7 @@ inline Destination& C3::Detail::fill_assign( Destination& dest, const Source& sr
 // number of copies.
 
 template< class Destination, class Source >
-inline Destination& C3::Detail::copy_assign( Destination& dest, const Source& src, const C3::size_type count )
+inline Destination& C3::Detail::Kernel::copy_assign( Destination& dest, const Source& src, const C3::size_type count )
 {
     typename Destination::value_type* begin = dest.begin();
     for( auto i = 0; i < count; ++ i )

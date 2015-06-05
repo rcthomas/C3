@@ -1,58 +1,196 @@
 
-// Forward declarations.
+// Container traits primary template.
 
-namespace C3
+template< class T >
+struct C3::ContainerTraits
 {
-    template< class T > class OwnedBlock;
-    template< class T > class Column;
-    template< class T > class Row;
-    template< class T > class Frame;
-    template< class T > class Stack;
-}
-
-// Checks if a type is a Block.
-
-template< class Type > struct C3::IsBlock                           { static const bool value = false; using value_type = Type; };
-template< class T >    struct C3::IsBlock< C3::OwnedBlock< T > >    { static const bool value = true;  using value_type = T;    };
-template< class T >    struct C3::IsBlock< C3::Column< T > >        { static const bool value = true;  using value_type = T;    };
-template< class T >    struct C3::IsBlock< C3::Row< T >    >        { static const bool value = true;  using value_type = T;    };
-template< class T >    struct C3::IsBlock< C3::Frame< T >  >        { static const bool value = true;  using value_type = T;    };
-template< class T >    struct C3::IsBlock< C3::Stack< T >  >        { static const bool value = true;  using value_type = T;    };
-
-// Checks if type Source is arithmetic and convertible to type T.
-
-template< class T, class Source >
-struct C3::IsCompatibleScalar
-{
-    static const bool value = std::is_arithmetic< Source >::value 
-        && std::is_convertible< Source, T >::value;
+    using value_type = T;
+    static bool const is_container = false;
 };
 
-// Checks if type Source is assignable to destination.
+// OwnedBlock specialization of container traits template.
+
+template< class T >
+struct C3::ContainerTraits< C3::OwnedBlock< T > >
+{
+    using value_type = T;
+    static bool const is_container = true;
+};
+
+// Column specialization of container traits template.
+
+template< class T >
+struct C3::ContainerTraits< C3::Column< T > >
+{
+    using value_type = T;
+    static bool const is_container = true;
+};
+
+// Row specialization of container traits template.
+
+template< class T >
+struct C3::ContainerTraits< C3::Row< T > >
+{
+    using value_type = T;
+    static bool const is_container = true;
+};
+
+// Frame specialization of container traits template.
+
+template< class T >
+struct C3::ContainerTraits< C3::Frame< T > >
+{
+    using value_type = T;
+    static bool const is_container = true;
+};
+
+// Stack specialization of container traits template.
+
+template< class T >
+struct C3::ContainerTraits< C3::Stack< T > >
+{
+    using value_type = T;
+    static bool const is_container = true;
+};
+
+//
+
+template< class T >
+struct C3::PixelTraits
+{
+    static bool const is_pixel = std::is_arithmetic< T >::value;
+};
+
+//
 
 template< class Destination, class Source >
-struct C3::IsAssignable
+struct C3::OperationTraits
 {
-    static const bool value = C3::IsBlock< Destination >::value 
-        && ( std::is_same< Destination, Source >::value || C3::IsCompatibleScalar< typename C3::IsBlock< Destination >::value_type, Source >::value );
+
+    static bool const src_is_pixel = C3::ContainerTraits< Destination >::is_container
+        && C3::PixelTraits< Source >::is_pixel
+        && std::is_convertible< Source, typename C3::ContainerTraits< Destination >::value_type >::value;
+
+    static bool const dest_is_pixel = C3::ContainerTraits< Source >::is_container
+        && C3::PixelTraits< Destination >::is_pixel
+        && std::is_convertible< Destination, typename C3::ContainerTraits< Source >::value_type >::value;
+    
+    using congruence_type = typename std::conditional< src_is_pixel || dest_is_pixel, PixelCongruence, NullType >::type;
+    using assignment_type = typename std::conditional< src_is_pixel || dest_is_pixel,  FillAssignment, NullType >::type;
+
 };
 
-// Any Block type but Stack type and convertible arithmetic scalar type can
-// assign to Frame type.
+//
 
-template< class Source, class T >
-struct C3::IsAssignable< C3::Frame< T >, Source >
+template< class T, class U >
+struct C3::OperationTraits< C3::OwnedBlock< T >, C3::OwnedBlock< U > >
 {
-    static const bool value = ( C3::IsBlock< Source >::value && ( ! std::is_same< C3::Stack< T >, Source >::value ) )
-        || C3::IsCompatibleScalar< T, Source >::value;
+    using congruence_type = SizeCongruence;
+    using assignment_type = CopyAssignment;
 };
 
-// Any Block type and convertible arithmetic scalar type can assign to Stack
-// type.
+//
 
-template< class Source, class T >
-struct C3::IsAssignable< C3::Stack< T >, Source >
+template< class T, class U >
+struct C3::OperationTraits< C3::Column< T >, C3::Column< U > >
 {
-    static const bool value = C3::IsBlock< Source >::value
-        || C3::IsCompatibleScalar< T, Source >::value;
+    using congruence_type = RowCongruence;
+    using assignment_type = CopyAssignment;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Frame< T >, C3::Column< U > >
+{
+    using congruence_type = RowCongruence;
+    using assignment_type = ColumnFrameAssignment;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Stack< T >, C3::Column< U > >
+{
+    using congruence_type = RowCongruence;
+    using assignment_type = ColumnStackAssignment;
+};
+
+//
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Row< T >, C3::Row< U > >
+{
+    using congruence_type = ColumnCongruence;
+    using assignment_type = CopyAssignment;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Frame< T >, C3::Row< U > >
+{
+    using congruence_type = ColumnCongruence;
+    using assignment_type = RowFrameAssignment;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Stack< T >, C3::Row< U > >
+{
+    using congruence_type = ColumnCongruence;
+    using assignment_type = RowStackAssignment;
+};
+
+//
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Column< T >, C3::Frame< U > >
+{
+    using congruence_type = RowCongruence;
+    using assignment_type = NullType;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Row< T >, C3::Frame< U > >
+{
+    using congruence_type = ColumnCongruence;
+    using assignment_type = NullType;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Frame< T >, C3::Frame< U > >
+{
+    using congruence_type = FrameCongruence;
+    using assignment_type = CopyAssignment;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Stack< T >, C3::Frame< U > >
+{
+    using congruence_type = FrameCongruence;
+    using assignment_type = FrameStackAssignment;
+};
+
+//
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Column< T >, C3::Stack< U > >
+{
+    using congruence_type = RowCongruence;
+    using assignment_type = NullType;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Row< T >, C3::Stack< U > >
+{
+    using congruence_type = ColumnCongruence;
+    using assignment_type = NullType;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Frame< T >, C3::Stack< U > >
+{
+    using congruence_type = FrameCongruence;
+    using assignment_type = NullType;
+};
+
+template< class T, class U >
+struct C3::OperationTraits< C3::Stack< T >, C3::Stack< U > >
+{
+    using congruence_type = StackCongruence;
+    using assignment_type = CopyAssignment;
 };

@@ -2,32 +2,37 @@
 #define C3_ASSIGN_HH
 
 #include "C3.hh"
+#include "C3_TypeTraits.hh"
 
 namespace C3
 {
 
-    /// Assign source to destination, optimized by argument types.
-    template< class Destination, class Source > 
-    Destination& assign( Destination& dest, const Source& src );
+    /// Assigns a source container (or pixel value) to destination.
+    template< class Destination, class Source > Destination& assign( Destination& dest, const Source& source );
+
+    // Details, details.
 
     namespace Detail
     {
 
-        /// Handles assignment between various types.
-        template< class Destination, class Source, bool SourceIsCompatibleScalar = false > 
-        struct Assign;
+        // Tag-dispatch details.
 
-        /// Assign repeated copies of scalar source to destination.
-        template< class Destination >
-        Destination& fill_assign( Destination& dest, const typename Destination::value_type src );
+        template< class Destination, class Source > Destination& assign( Destination& dest, const Source& src, FillAssignment        );
+        template< class Destination, class Source > Destination& assign( Destination& dest, const Source& src, CopyAssignment        );
+        template< class Destination, class Source > Destination& assign( Destination& dest, const Source& src, ColumnFrameAssignment );
+        template< class Destination, class Source > Destination& assign( Destination& dest, const Source& src, ColumnStackAssignment );
+        template< class Destination, class Source > Destination& assign( Destination& dest, const Source& src, RowFrameAssignment    );
+        template< class Destination, class Source > Destination& assign( Destination& dest, const Source& src, RowStackAssignment    );
+        template< class Destination, class Source > Destination& assign( Destination& dest, const Source& src, FrameStackAssignment  );
 
-        /// Assign repeated copies of source entries to destination.
-        template< class Destination, class Source > 
-        Destination& fill_assign( Destination& dest, const Source& src, const size_type count );
+        // Implementation details.
 
-        /// Assign repeated copies of source to destination.
-        template< class Destination, class Source > 
-        Destination& copy_assign( Destination& dest, const Source& src, const size_type count );
+        namespace Kernel
+        {
+            template< class Destination, class Source > Destination& fill_assign( Destination& dest, const Source& src );
+            template< class Destination, class Source > Destination& fill_assign( Destination& dest, const Source& src, const size_type count );
+            template< class Destination, class Source > Destination& copy_assign( Destination& dest, const Source& src, const size_type count );
+        }
 
     }
 
