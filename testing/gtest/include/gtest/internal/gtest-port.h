@@ -1386,8 +1386,12 @@ class MutexBase {
 // particular, the owner_ field (a pthread_t) is not explicitly initialized.
 // This allows initialization to work whether pthread_t is a scalar or struct.
 // The flag -Wmissing-field-initializers must not be specified for this to work.
+//# define GTEST_DEFINE_STATIC_MUTEX_(mutex) \
+//    ::testing::internal::MutexBase mutex = { PTHREAD_MUTEX_INITIALIZER, false }
+// RCT changed 2015-06-04 (see https://code.google.com/p/googletest/issues/detail?id=433)
+
 # define GTEST_DEFINE_STATIC_MUTEX_(mutex) \
-    ::testing::internal::MutexBase mutex = { PTHREAD_MUTEX_INITIALIZER, false }
+    ::testing::internal::MutexBase mutex = { PTHREAD_MUTEX_INITIALIZER, false, pthread_t() }
 
 // The Mutex class can only be used for mutexes created at runtime. It
 // shares its API with MutexBase otherwise.
