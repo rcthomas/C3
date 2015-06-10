@@ -3,31 +3,12 @@
 
 namespace C3
 {
-    template< class T > class OwnedBlock;
-    template< class T > class Column;
-    template< class T > class Row;
-    template< class T > class Frame;
-    template< class T > class Stack;
-}
-
-namespace C3
-{
-
-    /// Container traits type.
-    template< class T > struct ContainerTraits;
-
-    /// Pixel traits type.
-    template< class T > struct PixelTraits;
-
-    /// Operation type traits.
-    template< class Destination, class Source > struct OperationTraits;
 
     /// Null type.
-    struct NullType {};
+    struct Undefined {};
 
     /// Congruence types.
     struct PixelCongruence  {};
-    struct SizeCongruence   {};
     struct ColumnCongruence {};
     struct RowCongruence    {};
     struct FrameCongruence  {};
@@ -41,6 +22,23 @@ namespace C3
     struct RowFrameAssignment       {};
     struct RowStackAssignment       {};
     struct FrameStackAssignment     {};
+
+    template< class Head, class Tail >
+    struct ContainerPairTraits
+    {
+
+        const bool head_is_pixel     = IsPixel< Head >::value;
+        const bool head_is_container = IsContainer< Head >::value;
+
+        const bool tail_is_pixel     = IsPixel< Tail >::value;
+        const bool tail_is_container = IsContainer< Tail >::value;
+
+        const bool head_pixel_tail_container = head_is_pixel     && tail_is_container;
+        const bool head_container_tail_pixel = head_is_container && tail_is_pixel;
+
+        const bool container_and_pixel = head_pixel_tail_container || head_container_tail_pixel;
+
+    };
 
 }
 
