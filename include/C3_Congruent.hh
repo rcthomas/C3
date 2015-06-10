@@ -1,27 +1,18 @@
 #ifndef C3_CONGRUENT_HH
 #define C3_CONGRUENT_HH
 
-#include "C3_TypeTraits.hh"
+#include "detail/C3_Congruence.hh"
 
 namespace C3
 {
 
-    /// Returns true if the two types are congruent along one or more dimension.
-    template< class T, class U > bool congruent( const T& lhs, const U& rhs );
-
-    namespace Detail
+    /// Check if two pixel containers have allowed congruence.
+    template< class T, class U > 
+    inline bool congruent( const T& lhs, const U& rhs )
     {
-        template< class T, class U > bool congruent( const T& lhs, const U& rhs, NullType         );
-        template< class T, class U > bool congruent( const T& lhs, const U& rhs, PixelCongruence  );
-        template< class T, class U > bool congruent( const T& lhs, const U& rhs, SizeCongruence   );
-        template< class T, class U > bool congruent( const T& lhs, const U& rhs, ColumnCongruence );
-        template< class T, class U > bool congruent( const T& lhs, const U& rhs, RowCongruence    );
-        template< class T, class U > bool congruent( const T& lhs, const U& rhs, FrameCongruence  );
-        template< class T, class U > bool congruent( const T& lhs, const U& rhs, StackCongruence  );
+        return congruent( lhs, rhs, typename CongruenceTraits< T, U >::type );    
     }
 
 }
-
-#include "C3_Congruent.inl.hh"
 
 #endif

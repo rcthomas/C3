@@ -8,24 +8,22 @@ namespace C3
 
     /// @class Frame
     /// @brief Two-dimensional arrangement of pixels.
-    ///
-    /// This is a CCD read-out.  First coordinate indexes over column, second
-    /// indexes over row.
 
     template< class T >
-    class Frame : public OwnedBlock< T >
+    class Frame
     {
-
-        public :    // Public type definitions.
-
-            using super_type = OwnedBlock< T >;                 ///< Super-class type.
-            using value_type = typename super_type::value_type; ///< Content type.
 
         public :    // Public methods.
 
             /// Constructor.
-            explicit Frame( const size_type ncolumns, const size_type nrows ) noexcept : 
-                super_type( ncolumns * nrows ), _ncolumns( ncolumns ), _nrows( nrows ) {}
+            Frame( const size_type ncolumns, const size_type nrows ) noexcept : 
+                _block( ncolumns * nrows ), _ncolumns( ncolumns ), _nrows( nrows ) {}
+
+            /// Underlying block.
+            ///@{
+                  OwnedBlock< T >& block()       { return _block; }
+            const OwnedBlock< T >& block() const { return _block; }
+            ///@}
 
             /// Number of columns and rows.
             ///@{
@@ -35,14 +33,15 @@ namespace C3
 
             /// Coordinate access.
             ///@{
-            value_type& operator() ( const size_type j, const size_type k )       { return (*this)[ j + _ncolumns * k ]; }
-            value_type  operator() ( const size_type j, const size_type k ) const { return (*this)[ j + _ncolumns * k ]; }
+            T& operator() ( const size_type j, const size_type k )       { return _block[ j + _ncolumns * k ]; }
+            T  operator() ( const size_type j, const size_type k ) const { return _block[ j + _ncolumns * k ]; }
             ///@}
 
         private :   // Private data members.
 
-            size_type _ncolumns;    ///< Total columns.
-            size_type _nrows;       ///< Total rows.
+            OwnedBlock< T > _block;     ///< Content.
+            size_type       _ncolumns;  ///< Total columns.
+            size_type       _nrows;     ///< Total rows.
 
     };
 

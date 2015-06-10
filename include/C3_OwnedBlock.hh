@@ -6,14 +6,16 @@
 namespace C3
 {
 
+    /// @class OwnedBlock
+    /// @brief Block with memory management.
+
     template< class T >
     class OwnedBlock : public Block< T >
     {
 
         public :    // Public type definitions.
 
-            using super_type = Block< T >;                      ///< Super-class type.
-            using value_type = typename super_type::value_type; ///< Content type.
+            using super_type = Block< T >;  ///< Super-class type.
 
         public :    // Public methods.
 
