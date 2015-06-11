@@ -6,6 +6,8 @@
 namespace C3
 {
 
+    template< class T > class Frame;
+
     /// @class View
     /// @brief Reference to rectangular section of a frame.
 
@@ -16,7 +18,7 @@ namespace C3
         public :    // Public methods.
 
             /// IRAF-style section definitions.
-            static View iraf_style( Frame& frame, const size_type first_column, const size_type final_column,
+            static View iraf_style( Frame< T >& frame, const size_type first_column, const size_type final_column,
                     const size_type first_row, const size_type final_row )
             {
                 auto column_offset = first_column - 1;
@@ -27,7 +29,7 @@ namespace C3
             }
 
             /// Constructor.
-            View( Frame& frame, const size_type ncolumns, const size_type nrows, const size_type column_offset, const size_type row_offset ) noexcept :
+            View( Frame< T >& frame, const size_type ncolumns, const size_type nrows, const size_type column_offset, const size_type row_offset ) noexcept :
                 _block( frame.block() ), _ncolumns( ncolumns ), _nrows( nrows ), 
                 _offset( column_offset + frame.ncolumns() * row_offset ), _stride( frame.ncolumns() ) {}
 
