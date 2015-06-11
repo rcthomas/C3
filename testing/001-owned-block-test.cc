@@ -161,18 +161,18 @@ TEST( OwnedBlockTest, MoveAssign )
 }
 // Test destructor fires when we want it to.
 
-struct block_cheat { static int count; ~block_cheat() { ++count; } };
-int block_cheat::count = 0;
+struct owned_block_cheat { static int count; ~owned_block_cheat() { ++count; } };
+int owned_block_cheat::count = 0;
 
 TEST( OwnedBlockTest, Destruct )
 {
 
     C3::size_type size = 5;
     {
-        C3::OwnedBlock< block_cheat > original( size );
+        C3::OwnedBlock< owned_block_cheat > original( size );
     }
 
-    EXPECT_EQ( size, block_cheat::count );
+    EXPECT_EQ( size, owned_block_cheat::count );
 
 }
 
