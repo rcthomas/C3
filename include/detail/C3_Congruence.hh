@@ -1,8 +1,6 @@
 #ifndef C3_CONGRUENCE_HH
 #define C3_CONGRUENCE_HH
 
-#include <iostream>
-
 #include "C3_TypeTraits.hh"
 
 namespace C3
