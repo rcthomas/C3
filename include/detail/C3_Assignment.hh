@@ -1,6 +1,7 @@
 #ifndef C3_ASSIGNMENT_HH
 #define C3_ASSIGNMENT_HH
 
+#include <algorithm>
 #include <cassert>
 
 namespace C3
