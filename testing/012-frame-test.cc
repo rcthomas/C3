@@ -107,24 +107,18 @@ TEST( FrameTest, CopyConstruct )
 
 // Test move constructor.
 
-C3::Frame< int > frame_func( const C3::size_type ncolumns, const C3::size_type nrows, int*& data ) 
-{ 
-    C3::Frame< int > tmp( ncolumns, nrows );
-    data = tmp.block().data();
-    return tmp;
-}
-
 TEST( FrameTest, MoveConstruct )
 {
 
-    int* data;
-    C3::size_type ncolumns = 2;
-    C3::size_type nrows    = 3;
-    C3::Frame< int > container = frame_func( ncolumns, nrows, data );
+    C3::size_type ncolumns = 4;
+    C3::size_type nrows    = 5;
+    C3::Frame< int > source( ncolumns, nrows );
+    int* data = source.block().data();
 
-    EXPECT_EQ( ncolumns, container.ncolumns()     );
-    EXPECT_EQ( nrows   , container.nrows()        );
-    EXPECT_EQ( data    , container.block().data() );
+    C3::Frame< int > container = std::move( source );
+
+    EXPECT_EQ(     data, container.block().data() );
+    EXPECT_EQ(  nullptr,    source.block().data() );
 
 }
 

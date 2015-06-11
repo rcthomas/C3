@@ -15,7 +15,7 @@ class Makefile ( object ) :
         output += "\n"
         output += "none :\n\n"
         output += "test :\n"
-        output += "\tcd testing && make all\n\n"
+        output += "\tcd testing && touch *.cc && make all && ./test-c3\n\n"
         output += "distclean :\n"
         output += "\tcd app/decam && make realclean\n"
         output += "\tcd testing && make deepclean\n"

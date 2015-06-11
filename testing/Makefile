@@ -6,7 +6,7 @@ include ../Makefile
 GTEST_DIR=./gtest
 CXXFLAGS += -I$(GTEST_DIR)/include -pthread -fno-elide-constructors
 LDFLAGS  += -L$(GTEST_DIR)/lib
-LIBS     += -lgtest
+LIBS     += -lgtest -lpthread
 
 # C3
 

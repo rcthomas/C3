@@ -111,26 +111,19 @@ TEST( StackTest, CopyConstruct )
 
 // Test move constructor.
 
-C3::Stack< int > stack_func( const C3::size_type nframes, const C3::size_type ncolumns, const C3::size_type nrows, int*& data )
-{ 
-    C3::Stack< int > tmp( nframes, ncolumns, nrows );
-    data = tmp.block().data();
-    return tmp;
-}
-
 TEST( StackTest, MoveConstruct )
 {
 
-    int* data;
-    C3::size_type nframes  = 2;
+    C3::size_type nframes  = 2; 
     C3::size_type ncolumns = 3;
     C3::size_type nrows    = 4;
-    C3::Stack< int > container = stack_func( nframes, ncolumns, nrows, data );
+    C3::Stack< int > source( nframes, ncolumns, nrows );
+    int* data = source.block().data();
 
-    EXPECT_EQ( nframes , container.nframes()        );
-    EXPECT_EQ( ncolumns, container.ncolumns()       );
-    EXPECT_EQ( nrows   , container.nrows()          );
-    EXPECT_EQ( data    , container.block().data()   );
+    C3::Stack< int > container = std::move( source );
+
+    EXPECT_EQ(    data, container.block().data() );
+    EXPECT_EQ( nullptr,    source.block().data() );
 
 }
 

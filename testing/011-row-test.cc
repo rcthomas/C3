@@ -94,22 +94,17 @@ TEST( RowTest, CopyConstruct )
 
 // Test move constructor.
 
-C3::Row< int > row_func( const C3::size_type ncolumns, int*& data ) 
-{ 
-    C3::Row< int > tmp( ncolumns );
-    data = tmp.block().data();
-    return tmp;
-}
-
 TEST( RowTest, MoveConstruct )
 {
 
-    int* data;
     C3::size_type ncolumns = 5;
-    C3::Row< int > container = row_func( ncolumns, data );
+    C3::Row< int > source( ncolumns );
+    int* data = source.block().data();
 
-    EXPECT_EQ( ncolumns, container.ncolumns()       );
-    EXPECT_EQ( data    , container.block().data()   );
+    C3::Row< int > container = std::move( source );
+
+    EXPECT_EQ(     data, container.block().data() );
+    EXPECT_EQ(  nullptr,    source.block().data() );
 
 }
 
