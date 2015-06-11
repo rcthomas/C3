@@ -15,18 +15,21 @@ CXXFLAGS += -I$(C3_DIR)/include
 
 #
 
-TARGETS=$(patsubst %-test.cc,%-test,$(wildcard *-test.cc))
+TARGET=test-c3
+OBJECTS=$(patsubst %-test.cc,%-test.o,$(wildcard *-test.cc)) $(TARGET).o
 
-all : gtest $(TARGETS)
-	$(foreach target,$(TARGETS),make $(target) && ./$(target) && echo && echo;)
+all : $(TARGET)
 
-%-test : %-test.cc
-	$(CXX) $(LDFLAGS) $(CXXFLAGS) $< -o $@ $(LIBS)
+$(TARGET) : gtest $(OBJECTS)
+	$(CXX) $(LDFLAGS) $(OBJECTS) -o $@ $(LIBS)
 
 gtest : $(GTEST_DIR)/lib/libgtest.a
 
 $(GTEST_DIR)/lib/libgtest.a :
 	cd $(GTEST_DIR) && make all
+
+.cc.o :
+	$(CXX) $(CXXFLAGS) -c $< -o $@    
 
 clean :
 	rm -rf *.o

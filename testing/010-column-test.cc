@@ -94,7 +94,7 @@ TEST( ColumnTest, CopyConstruct )
 
 // Test move constructor.
 
-C3::Column< int > func( const C3::size_type nrows, int*& data ) 
+C3::Column< int > column_func( const C3::size_type nrows, int*& data ) 
 { 
     C3::Column< int > tmp( nrows );
     data = tmp.block().data();
@@ -106,7 +106,7 @@ TEST( ColumnTest, MoveConstruct )
 
     int* data;
     C3::size_type nrows = 5;
-    C3::Column< int > container = func( nrows, data );
+    C3::Column< int > container = column_func( nrows, data );
 
     EXPECT_EQ( nrows, container.nrows()        );
     EXPECT_EQ( data , container.block().data() );
@@ -163,26 +163,18 @@ TEST( ColumnTest, MoveAssign )
 
 // Test destructor fires when we want it to.
 
-struct cheat { static int count; ~cheat() { ++count; } };
-int cheat::count = 0;
+struct column_cheat { static int count; ~column_cheat() { ++count; } };
+int column_cheat::count = 0;
 
 TEST( ColumnTest, Destruct )
 {
 
     C3::size_type size = 5;
     {
-        C3::Column< cheat > original( size );
+        C3::Column< column_cheat > original( size );
     }
 
-    EXPECT_EQ( size, cheat::count );
+    EXPECT_EQ( size, column_cheat::count );
 
 }
 
-// Run the tests.
-
-int main( int argc, char* argv[] )
-{
-    ::testing::InitGoogleTest( &argc, argv );
-    ::testing::FLAGS_gtest_death_test_style = "fast";
-    return RUN_ALL_TESTS();
-}

@@ -111,7 +111,7 @@ TEST( StackTest, CopyConstruct )
 
 // Test move constructor.
 
-C3::Stack< int > func( const C3::size_type nframes, const C3::size_type ncolumns, const C3::size_type nrows, int*& data )
+C3::Stack< int > stack_func( const C3::size_type nframes, const C3::size_type ncolumns, const C3::size_type nrows, int*& data )
 { 
     C3::Stack< int > tmp( nframes, ncolumns, nrows );
     data = tmp.block().data();
@@ -125,7 +125,7 @@ TEST( StackTest, MoveConstruct )
     C3::size_type nframes  = 2;
     C3::size_type ncolumns = 3;
     C3::size_type nrows    = 4;
-    C3::Stack< int > container = func( nframes, ncolumns, nrows, data );
+    C3::Stack< int > container = stack_func( nframes, ncolumns, nrows, data );
 
     EXPECT_EQ( nframes , container.nframes()        );
     EXPECT_EQ( ncolumns, container.ncolumns()       );
@@ -199,8 +199,8 @@ TEST( StackTest, MoveAssign )
 
 // Test destructor fires when we want it to.
 
-struct cheat { static int count; ~cheat() { ++count; } };
-int cheat::count = 0;
+struct stack_cheat { static int count; ~stack_cheat() { ++count; } };
+int stack_cheat::count = 0;
 
 TEST( StackTest, Destruct )
 {
@@ -209,18 +209,9 @@ TEST( StackTest, Destruct )
     C3::size_type ncolumns = 3;
     C3::size_type nrows    = 4;
     {
-        C3::Stack< cheat > original( nframes, ncolumns, nrows );
+        C3::Stack< stack_cheat > original( nframes, ncolumns, nrows );
     }
 
-    EXPECT_EQ( nframes * ncolumns * nrows, cheat::count );
+    EXPECT_EQ( nframes * ncolumns * nrows, stack_cheat::count );
 
-}
-
-// Run the tests.
-
-int main( int argc, char* argv[] )
-{
-    ::testing::InitGoogleTest( &argc, argv );
-    ::testing::FLAGS_gtest_death_test_style = "fast";
-    return RUN_ALL_TESTS();
 }
