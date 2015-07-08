@@ -1,7 +1,7 @@
 #ifndef C3_COMMUNICATOR_HH
 #define C3_COMMUNICATOR_HH
 
-#include "C3_MPI.hh"
+#include <mpi.h>
 
 namespace C3
 {

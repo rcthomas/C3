@@ -7,15 +7,13 @@ namespace C3
 {
 
     /// @class Exception
-    /// @brief Basic exception class.
+    /// @brief Base exception class.
 
-    class Exception : public std::runtime_error
+    struct Exception : public std::runtime_error
     {
 
-        public :
-
-            /// Constructor.
-            Exception( const std::string& message ) : std::runtime_error( message ) {}
+        /// Constructor.
+        Exception( const std::string& message ) : std::runtime_error( message ) {}
 
     };
 
