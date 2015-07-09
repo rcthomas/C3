@@ -12,9 +12,9 @@ namespace C3
     ///
     /// A FitsLoader object manages the lifecycle of a read-only CFITSIO file
     /// object and provides methods of populating Blocks with data stored in
-    /// the associated FITS file.
+    /// the associated FITS file.  Since this class manages a file resource 
+    /// during its lifecycle it is non-copyable.
 
-    template< class T >
     class FitsLoader
     {
 
@@ -38,8 +38,15 @@ namespace C3
             /// Destructor.
             ~FitsLoader();
 
-            /// Load data from extension into previously allocated block.
-            Block< T >& operator () ( Block< T >& block, const std::string& extname );
+            /// Select HDU and load data into pre-allocated block.
+            template< class T > Block< T >& operator() ( Block< T >& block, const std::string& extname );
+
+            /// Select HDU.
+            void select( const std::string& extname );
+
+            /// Load data into pre-allocated block.
+            template< class T > Block< T >& load( Block< T >& block );
+
 
         private :   // Private methods.
 
