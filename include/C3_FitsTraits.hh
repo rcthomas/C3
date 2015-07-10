@@ -5,7 +5,7 @@ namespace C3
 {
 
     template< class T >
-    struct C3::FitsType {};
+    struct FitsType {};
 
 }
 
