@@ -1,6 +1,14 @@
 #ifndef C3_FITS_LOADER_HH
 #define C3_FITS_LOADER_HH
 
+#include "C3_FitsResource.hh"
+
+namespace C3
+{
+    template< class T >
+    class Block;
+}
+
 namespace C3
 {
 
@@ -9,11 +17,6 @@ namespace C3
 
     /// @class FitsLoader
     /// @brief Populate a Block with data from a FITS file.
-    ///
-    /// A FitsLoader object manages the lifecycle of a read-only CFITSIO file
-    /// object and provides methods of populating Blocks with data stored in
-    /// the associated FITS file.  Since this class manages a file resource 
-    /// during its lifecycle it is non-copyable.
 
     class FitsLoader
     {
@@ -22,21 +25,6 @@ namespace C3
 
             /// Constructor.
             explicit FitsLoader( const std::string& path );
-
-            /// Copy constructor is deleted.
-            FitsLoader( const FitsLoader& loader ) = delete;
-
-            /// Move constructor is deleted.
-            FitsLoader( FitsLoader&& loader ) = delete;
-
-            /// Copy assignment is deleted.
-            FitsLoader& operator = ( const FitsLoader& loader ) = delete;
-
-            /// Move assignment is deleted.
-            FitsLoader& operator = ( FitsLoader&& loader ) = delete;
-
-            /// Destructor.
-            ~FitsLoader();
 
             /// Select HDU and load data into pre-allocated block.
             template< class T > Block< T >& operator() ( Block< T >& block, const std::string& extname );
@@ -47,10 +35,9 @@ namespace C3
             /// Load data into pre-allocated block.
             template< class T > Block< T >& load( Block< T >& block );
 
+        private :   // Private data members.
 
-        private :   // Private methods.
-
-            fitsfile* _fits;  ///< CFITSIO file structure.
+            FitsResource _resource; ///< FITS file interface.
 
     };
 
