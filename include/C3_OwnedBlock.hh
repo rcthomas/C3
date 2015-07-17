@@ -13,10 +13,6 @@ namespace C3
     class OwnedBlock : public Block< T >
     {
 
-        public :    // Public type definitions.
-
-            using super_type = Block< T >;  ///< Super-class type.
-
         public :    // Public methods.
 
             /// Constructor.
@@ -41,6 +37,6 @@ namespace C3
 
 }
 
-#include "C3_OwnedBlock.inl.hh"
+#include "inline/C3_OwnedBlock.hh"
 
 #endif

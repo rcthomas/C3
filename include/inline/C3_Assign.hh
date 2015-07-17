@@ -1,6 +1,3 @@
-#ifndef C3_ASSIGNMENT_HH
-#define C3_ASSIGNMENT_HH
-
 #include <algorithm>
 #include <cassert>
 
@@ -294,4 +291,19 @@ namespace C3
 
 }
 
-#endif
+// Apply binary operator and assign result to destination.
+
+template< template< class > class Operator, class Destination, class Source >
+inline Destination& C3::assign( Destination& dest, const Source& src )
+{
+    assert( congruent( dest, src ) );
+    return C3::detail::assign< Operator >( dest, src );
+}
+
+// Assign pixel or container source to a container destination.
+
+template< class Destination, class Source >
+inline Destination& C3::assign( Destination& dest, const Source& src )
+{
+    return C3::assign< detail::Identity >( dest, src );
+}

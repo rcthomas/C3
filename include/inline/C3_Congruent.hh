@@ -1,7 +1,5 @@
-#ifndef C3_CONGRUENCE_HH
-#define C3_CONGRUENCE_HH
 
-#include "C3_TypeTraits.hh"
+#include "../C3_TypeTraits.hh"
 
 namespace C3
 {
@@ -18,13 +16,10 @@ namespace C3
         struct FrameCongruence  {};
         struct StackCongruence  {};
         
-        /// @class CongruenceTraits
-        /// @brief Maps container-type pairs to congruence tag types.
-        ///
-        /// This traits class returns a single type corresponding to one of the
-        /// above congruence types, or UndefinedType if none applies.  Congruence
-        /// types are used to select the appropriate implementation of congruence
-        /// checks between containers.
+        /// The following traits class returns a single type corresponding to
+        /// one of the above congruence types, or UndefinedType if none applies.
+        /// Congruence types are used to select the appropriate implementation of
+        /// congruence checks between containers.
         ///
         /// The primary template implementation governs pixel-vs-container checks
         /// (and container-vs-pixel checks) as PixelCongruence.  If no matching 
@@ -132,4 +127,11 @@ namespace C3
 
 }
 
-#endif
+// Check if two pixel containers have allowed congruence.
+
+template< class T, class U > 
+inline bool C3::congruent( const T& lhs, const U& rhs )
+{
+    typename C3::detail::CongruenceTraits< T, U >::type congruence;
+    return C3::detail::congruent( lhs, rhs, congruence );
+}

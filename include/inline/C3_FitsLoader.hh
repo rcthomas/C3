@@ -1,7 +1,7 @@
 
-#include "C3_Block.hh"
-#include "C3_FitsException.hh"
-#include "C3_FitsTraits.hh"
+#include "../C3_Block.hh"
+#include "../C3_FitsException.hh"
+#include "../C3_FitsTraits.hh"
 
 template< class T > 
 C3::Block< T >& fits_load_one( C3::Block< T >& block, const std::string& path, const std::string& extname )
@@ -11,7 +11,7 @@ C3::Block< T >& fits_load_one( C3::Block< T >& block, const std::string& path, c
 }
 
 inline C3::FitsLoader::FitsLoader( const std::string& path ) :
-    _resource( path, READONLY ) 
+    C3::FitsResource( path, READONLY ) 
 {}
 
 template< class T >

@@ -60,6 +60,4 @@ namespace C3
 
 }
 
-// #include "C3_TypeTraits.inl.hh"
-
 #endif

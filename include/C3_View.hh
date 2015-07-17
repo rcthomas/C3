@@ -19,14 +19,7 @@ namespace C3
 
             /// IRAF-style section definitions.
             static View iraf_style( Frame< T >& frame, const size_type first_column, const size_type final_column,
-                    const size_type first_row, const size_type final_row )
-            {
-                auto column_offset = first_column - 1;
-                auto row_offset    = first_row    - 1;
-                auto ncolumns = final_column - column_offset;
-                auto nrows    = final_row    - row_offset;
-                return View( frame, ncolumns, nrows, column_offset, row_offset );
-            }
+                    const size_type first_row, const size_type final_row );
 
             /// Constructor.
             View( Frame< T >& frame, const size_type ncolumns, const size_type nrows, const size_type column_offset, const size_type row_offset ) noexcept :
@@ -68,5 +61,7 @@ namespace C3
     };
 
 }
+
+#include "inline/C3_View.hh"
 
 #endif

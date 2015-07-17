@@ -24,4 +24,3 @@ inline std::string C3::FitsException::status_string( const int cfitsio_status )
     return ss.str();
 
 }
-

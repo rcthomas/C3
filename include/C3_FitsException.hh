@@ -25,6 +25,6 @@ namespace C3
 
 }
 
-#include "C3_FitsException.inl.hh"
+#include "inline/C3_FitsException.hh"
 
 #endif

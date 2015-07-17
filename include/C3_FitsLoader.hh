@@ -18,7 +18,7 @@ namespace C3
     /// @class FitsLoader
     /// @brief Populate a Block with data from a FITS file.
 
-    class FitsLoader
+    class FitsLoader : public FitsResource
     {
 
         public :    // Public methods.
@@ -34,10 +34,6 @@ namespace C3
 
             /// Load data into pre-allocated block.
             template< class T > Block< T >& load( Block< T >& block );
-
-        private :   // Private data members.
-
-            FitsResource _resource; ///< FITS file interface.
 
     };
 

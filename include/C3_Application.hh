@@ -18,6 +18,6 @@ namespace C3
 
 }
 
-#include "C3_Application.inl.hh"
+#include "inline/C3_Application.hh"
 
 #endif

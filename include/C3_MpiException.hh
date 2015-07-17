@@ -25,6 +25,6 @@ namespace C3
 
 }
 
-#include "C3_MpiException.inl.hh"
+#include "inline/C3_MpiException.hh"
 
 #endif

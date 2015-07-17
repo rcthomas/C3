@@ -1,7 +1,7 @@
 #ifndef C3_BLOCK_HH
 #define C3_BLOCK_HH
 
-#include "detail/C3.hh"
+#include "C3.hh"
 
 namespace C3
 {

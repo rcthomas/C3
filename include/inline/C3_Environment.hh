@@ -5,7 +5,7 @@
 
 #include <omp.h>
 
-#include "C3_Exception.hh"
+#include "../C3_Exception.hh"
 
 // Start-up access point.
 

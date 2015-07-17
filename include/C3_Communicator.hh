@@ -40,6 +40,6 @@ namespace C3
 
 }
 
-#include "C3_Communicator.inl.hh"
+#include "inline/C3_Communicator.hh"
 
 #endif

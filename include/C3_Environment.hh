@@ -21,15 +21,9 @@ namespace C3
             /// Copy constructor.
             Environment( const Environment& env ) = delete;
 
-            /// Move constructor.
-            Environment( Environment&& env ) = delete;
-
             /// Copy assignment.
             Environment& operator = ( const Environment& env ) = delete;
 
-            /// Move assignment.
-            Environment& operator = ( Environment&& env ) = delete;
-    
             /// Start-up access point.
             static Environment& instance( int& argc, char**& argv );
     
@@ -98,6 +92,6 @@ namespace C3
 
 }
 
-#include "C3_Environment.inl.hh"
+#include "inline/C3_Environment.hh"
 
 #endif

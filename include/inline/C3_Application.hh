@@ -1,6 +1,4 @@
 
-#include "C3.hh"
-
 // Runs a production application.
 
 template< class Instrument, class Metadata, class Activity >

@@ -9,6 +9,6 @@ namespace C3
 
 }
 
-#include "C3_FitsTraits.inl.hh"
+#include "inline/C3_FitsTraits.hh"
 
 #endif

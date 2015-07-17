@@ -6,19 +6,18 @@
 namespace C3
 {
 
+    /// @class AliasBlock
+    /// @brief Block that shadows another block.
+
     template< class T >
     class AliasBlock : public Block< T >
     {
-
-        public :    // Public type definitions.
-
-            using super_type = Block< T >;  ///< Super-class type.
 
         public :    // Public methods.
 
             /// Constructor.
             explicit AliasBlock( Block< T >& block ) noexcept :
-                super_type( block.size(), block.data() ) {}
+                Block< T >( block.size(), block.data() ) {}
 
     };
 
