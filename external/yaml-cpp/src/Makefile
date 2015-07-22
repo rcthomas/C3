@@ -15,7 +15,8 @@ OBJECTS=binary.o convert.o directives.o emit.o emitfromevents.o emitter.o     \
 INCLUDE=-I$(BOOST_DIR)/include -I../include
 
 CXX=CC
-CXXFLAGS=-std=c++11 -fast $(INCLUDE) -Wno-deprecated
+#CXXFLAGS=-std=c++11 -fast $(INCLUDE) -Wno-deprecated
+CXXFLAGS=-std=c++11 $(INCLUDE) -Wno-deprecated
 LDFLAGS=-L.
 LDLIBS=-lyaml-cpp
 
