@@ -1,12 +1,21 @@
 
-// Runs a production application.
+#include "../C3_Context.hh"
 
-template< class Instrument, class Metadata, class Activity >
-inline int C3::Application< Instrument, Metadata, Activity >::run( int& argc, char**& argv )
+// Execute application.
+
+template< template< class > class Concurrency, class InstrumentTraits, template< class > class Engine >
+inline int C3::Application< Concurrency, InstrumentTraits, Engine >::run( int& argc, char**& argv )
 {
-    C3::Environment< Instrument >&       environment = C3::Environment< Instrument >::instance( argc, argv );
-    C3::Pipeline< Instrument, Activity > pipeline    = C3::Pipeline< Instrument, Operation >::create( argc, argv );
-    C3::TaskQueue< Metadata >            queue       = C3::TaskQueue< Metadata >::create( argc, argv );
-    while( queue.has_tasks() ) pipeline.process( queue.next_task() );
-    return environment.finalize();
+    using ContextType    = C3::Context< Concurrency, InstrumentTraits >;
+    ContextType& context = ContextType::instance( argc, argv );
+    Engine< ContextType > engine;
+    while( context.has_tasks() ) engine.process( context.next_task() );
+    return context.finalize();
 }
+
+// Engine needs to get from context the information it needs to pick out its HDU to process.
+// This is probably the frame name.
+// With parallel concurrency this is determined at runtime from the MPI rank and the list of frames.
+// With serial concurrency this is determined at runtime from input provided by the user.
+// Since each concurrency depends on concurrency-related things at runtime it should be determined by that.
+// And since that depends on the instrument traits, concurrency needs to know instrument traits (not necessarily inherit from it though).
