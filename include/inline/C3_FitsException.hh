@@ -15,6 +15,7 @@ inline C3::FitsException::FitsException( const int cfitsio_status ) :
 
 inline std::string C3::FitsException::status_string( const int cfitsio_status ) 
 {
+
     char status_message[ FLEN_STATUS ];
     fits_get_errstatus( cfitsio_status, status_message );
 
