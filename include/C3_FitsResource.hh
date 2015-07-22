@@ -32,12 +32,12 @@ namespace C3
         protected : // Protected data members.
 
             /// Constructor.
-            explicit FitsResource( const std::string& path, const int mode );
+            FitsResource();
 
             /// Destructor.
             ~FitsResource();
 
-        private :   // Private data members.
+        protected : // Protected data members.
 
             fitsfile*   _fits;  ///< CFITSIO file object.
 

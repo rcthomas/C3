@@ -39,6 +39,6 @@ namespace C3
 
 }
 
-#include "C3_FitsLoader.inl.hh"
+#include "inline/C3_FitsLoader.hh"
 
 #endif
