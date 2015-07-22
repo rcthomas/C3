@@ -1,14 +1,20 @@
 
 TARGET = \
-    decam-preprocess-science
+    decam-test-engine
 
 include ../../Makefile
-CXXFLAGS+= -qopenmp -Wno-deprecated
+#CXXFLAGS+= -qopenmp -Wno-deprecated
 
 # Need boost for yaml-cpp; NERSC module.  Developer is factoring out the boost
 # dependency.
 
 INCLUDE+=-I$(BOOST_DIR)/include
+
+# Need GSL; NERSC module.
+
+INCLUDE+=-I$(GSL_DIR)/include
+LDFLAGS+=-L$(GSL_DIR)/lib
+LIBS+=-lgsl
 
 # Need CFITSIO; NERSC module.
 
@@ -20,7 +26,7 @@ LIBS+=-lcfitsio
 # CMAKE install on NERSC systems requires attention (not I said the cat).
 
 C3_DIR=../..
-INCLUDE+=-I$(C3_DIR)/external/yaml-cpp/include
+INCLUDE+=-I$(C3_DIR)/include -I$(C3_DIR)/external/yaml-cpp/include
 LDFLAGS+=-L$(C3_DIR)/external/yaml-cpp/src
 LIBS+=-lyaml-cpp
 
