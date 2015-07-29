@@ -1,10 +1,6 @@
 
 #include <sstream>
 
-#include <mpi.h>
-
-#include "C3_MpiException.hh"
-
 inline void C3::assert_mpi_status( const int mpi_status )
 {
     if( mpi_status == 0 ) return;
@@ -14,7 +10,6 @@ inline void C3::assert_mpi_status( const int mpi_status )
 inline C3::MpiException::MpiException( const int mpi_status ) :
     C3::Exception( C3::MpiException::status_string( mpi_status ) )
 {}
-
 
 inline std::string C3::MpiException::status_string( const int mpi_status )
 {
