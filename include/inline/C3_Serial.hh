@@ -14,10 +14,10 @@ inline void C3::Serial< InstrumentTraits >::init( int& argc, char**& argv )
     // Read and validate configuration.
 
     std::ifstream stream( argv[ 1 ] );
-    if( ! stream ) throw 123;
+    if( ! stream ) throw 123;   // FIXME actual exception
     _config = YAML::Load( stream );
 
-    if( ! InstrumentTraits::frame_exists( _config[ "frame" ].template as< std::string >() ) ) throw 124;
+    if( ! InstrumentTraits::frame_exists( _config[ "frame" ].template as< std::string >() ) ) throw 124;    // FIXME actual exception
 
     // Parse other arguments into list of task files.
 
@@ -36,7 +36,7 @@ inline YAML::Node C3::Serial< InstrumentTraits >::next_task()
         std::string task_file = _task_files.front();
         _task_files.pop();
         std::ifstream stream( task_file.c_str() );
-        if( ! stream ) throw 123;
+        if( ! stream ) throw 123;   // FIXME actual exception
         std::vector< YAML::Node > tasks = YAML::LoadAll( stream );
         for( auto& task : tasks ) _tasks.push( std::move( task ) );
     }
