@@ -1,9 +1,11 @@
 
 #include <fstream>
 
+#include "../C3_FileLogger.hh"
 #include "../C3_FitsCreator.hh"
 #include "../C3_FitsLoader.hh"
 #include "../C3_Frame.hh"
+#include "../C3_StandardLogger.hh"
 
 // Configuration and task stream from command line.
 
@@ -11,13 +13,46 @@ template< class InstrumentTraits >
 inline void C3::Serial< InstrumentTraits >::init( int& argc, char**& argv )
 {
 
-    // Read and validate configuration.
+    // Read configuration.
 
     std::ifstream stream( argv[ 1 ] );
     if( ! stream ) throw 123;   // FIXME actual exception
     _config = YAML::Load( stream );
 
+    // Validate frame exists.
+
     if( ! InstrumentTraits::frame_exists( _config[ "frame" ].template as< std::string >() ) ) throw 124;    // FIXME actual exception
+
+    // Initiate logging.
+
+    if( _config[ "logger" ] )
+    {
+
+        YAML::Node& node = _config[ "logger" ];
+
+        C3::LogLevel level = C3::LogLevel::DEFAULT;
+        if( node[ "loglevel" ] ) level = node[ "loglevel" ].template as< C3::LogLevel >(); // heh?
+
+        std::string path( "." );
+        if( node[ "path" ] ) path = node[ "path" ].template as< std::string >(); // default...
+        if( path.back() != "/" ) path += "/";
+
+        std::string prefix;
+        if( node[ "prefix" ] )
+        {
+            std::string fullpath = path + node[ "prefix" ].template as< std::string >() + ".000." + frame() + ".log";
+            _logger.reset( new C3::FileLogger( fullpath, level ) );
+        }
+        else
+        {
+            _logger.reset( new C3::StandardLogger( level ) );
+        }
+        
+    }
+    else
+    {
+        _logger.reset( new C3::StandardLogger() );
+    }
 
     // Parse other arguments into list of task files.
 

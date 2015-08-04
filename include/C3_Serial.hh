@@ -5,6 +5,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "C3_Logger.hh"
+
 namespace C3
 {
 
@@ -49,6 +51,9 @@ namespace C3
             template< class T, class U >
             void save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path );
 
+            /// Logger.
+            Logger& logger() { return *_logger; }
+
 //          /// Save tuple.
 //          template< class T >
 //          void save( const C3::Tuple< T >& output, const std::string& path );
@@ -63,6 +68,8 @@ namespace C3
             YAML::Node                  _config;        ///< Configuration.
             std::queue< std::string >   _task_files;    ///< Task stream.
             std::queue< YAML::Node  >   _tasks;         ///< Current task chunk.
+
+            std::unique_ptr< Logger >   _logger;        ///< Logger, either standard or file-based.
 
     };
 
