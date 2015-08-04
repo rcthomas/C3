@@ -6,6 +6,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "C3_Communicator.hh"
+#include "C3_FileLogger.hh"
 
 namespace C3
 {
@@ -30,14 +31,17 @@ namespace C3
             /// Return the config.
             const YAML::Node& config() const { return _config; }
 
-//          /// True if tasks remain in the stream.
-//          bool has_tasks() const { return _task_files.size() > 0 || _tasks.size() > 0; }
+            /// True if tasks remain in the stream.
+            bool has_tasks() const { return _task_files.size() > 0 || _tasks.size() > 0; }
 
-//          /// Returns the next task in the stream.
-//          YAML::Node next_task();
+            /// Returns the next task in the stream.
+            YAML::Node next_task();
 
             /// Frame.
-            std::string frame() const { return _config[ "frame" ].template as< std::string >(); }
+            std::string frame() const { return InstrumentTraits::frames[ exposure_comm().rank() ]; }
+
+            /// Logger.
+            Logger& logger() { return *_logger; }
 
 //          /// Load frame.
 //          template< class T >
@@ -96,6 +100,8 @@ namespace C3
             std::queue< std::string >   _task_files;        ///< Task stream.
             std::queue< YAML::Node  >   _tasks;             ///< Current task chunk.
 
+            int                         _task_position;        ///<
+
         private :   // Private data members.
 
             std::unique_ptr< C3::Communicator > _world_comm;     ///< All MPI processes contained at startup.
@@ -109,6 +115,8 @@ namespace C3
 
             int                 _exposure_lane;             ///< Exposure lane this MPI process belongs to.
             std::string         _hostname;                  ///< Hostname of this MPI process.
+
+            std::unique_ptr< FileLogger >   _logger;        ///< Always a file logger.
 
     };
 

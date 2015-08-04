@@ -31,16 +31,22 @@ inline void C3::Parallel< InstrumentTraits >::init( int& argc, char**& argv )
 
     if( frame_comm().root() )
     {
+
         std::ifstream stream( argv[ 1 ] ); // std::ifstream in(filename, std::ios::in | std::ios::binary);
         if( ! stream ) throw 123; // FIXME actual exception
 
         stream.seekg( 0, std::ios::end );
-        C3::OwnedBlock< char > buffer( stream.tellg() );
+
+        int size = stream.tellg();
+        size ++;
+        C3::OwnedBlock< char > buffer( size );
+
         stream.seekg( 0, std::ios::beg );
-        stream.read( buffer.data(), buffer.size() );
+        stream.read( buffer.data(), buffer.size() - 1 );
         stream.close();
 
-        int size = buffer.size();
+        buffer[ size - 1 ] = '\0';
+
         int status = MPI_Bcast( &size, 1, MPI_INT, 0, frame_comm().comm() );
         C3::assert_mpi_status( status );
 
@@ -60,16 +66,40 @@ inline void C3::Parallel< InstrumentTraits >::init( int& argc, char**& argv )
         C3::OwnedBlock< char > buffer( size );
         status = MPI_Bcast( buffer.data(), size, MPI_CHAR, 0, frame_comm().comm() );
         C3::assert_mpi_status( status );
-        
+       
         _config = YAML::Load( buffer.data() );
 
     }
 
-    if( ! InstrumentTraits::frame_exists( _config[ "frame" ].template as< std::string >() ) ) throw 124;    // FIXME actual exception
+    // Initiate logging.
+
+    if( _config[ "logger" ] )
+    {
+
+        const YAML::Node& node = _config[ "logger" ];
+
+        C3::LogLevel level = C3::LogLevel::DEFAULT;
+        if( node[ "level" ] ) level = C3::loglevel_enum( node[ "level" ].template as< std::string >() );
+
+        std::string path( "." );
+        if( node[ "path" ] ) path = node[ "path" ].template as< std::string >(); // default...
+        if( path.back() != '/' ) path += "/";
+
+        std::string fullprefix = path + "default";
+        if( node[ "prefix" ] ) fullprefix = path + node[ "prefix" ].template as< std::string >();
+
+        std::stringstream ss;
+        ss.fill( '0' );
+        ss.width( 3 );
+        ss << exposure_lane();
+        _logger.reset( new C3::FileLogger( fullprefix + "." + ss.str() + "." + frame() + ".log", level ) );
+        
+    }
 
     // Parse other arguments into list of task files.
 
     for( auto i = 2; i < argc; ++ i ) _task_files.push( argv[ i ] );
+    _task_position = 0;
 
 }
 
@@ -83,14 +113,70 @@ inline int C3::Parallel< InstrumentTraits >::finalize()
     return EXIT_SUCCESS;
 }
 
-///// // Returns the next task in the stream.
-///// 
-///// template< class InstrumentTraits >
-///// inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
-///// {
-/////     // FIXME TBD
-///// }
-///// 
+// Returns the exposure's next task in the stream.
+
+template< class InstrumentTraits >
+inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
+{
+
+    if( _tasks.size() == 0 && _task_files.size() > 0 )
+    {
+
+        std::string task_file = _task_files.front();
+        _task_files.pop();
+
+        if( exposure_comm().root() )
+        {
+
+            std::ifstream stream( task_file.c_str() ); // std::ifstream in(filename, std::ios::in | std::ios::binary);
+            if( ! stream ) throw 123; // FIXME actual exception
+
+            stream.seekg( 0, std::ios::end );
+
+            int size = stream.tellg();
+            size ++;
+            C3::OwnedBlock< char > buffer( size );
+
+            stream.seekg( 0, std::ios::beg );
+            stream.read( buffer.data(), buffer.size() - 1 );
+            stream.close();
+
+            buffer[ size - 1 ] = '\0';
+
+            int status = MPI_Bcast( &size, 1, MPI_INT, 0, exposure_comm().comm() );
+            C3::assert_mpi_status( status );
+
+            status = MPI_Bcast( buffer.data(), size, MPI_CHAR, 0, exposure_comm().comm() );
+            C3::assert_mpi_status( status );
+
+            std::vector< YAML::Node > tasks = YAML::LoadAll( buffer.data() );
+            for( auto& task : tasks ) if( _task_position ++ % exposure_lanes() == exposure_lane() ) _tasks.push( std::move( task ) );
+
+        }
+        else
+        {
+
+            int size   = 0;
+            int status = MPI_Bcast( &size, 1, MPI_INT, 0, exposure_comm().comm() );
+            C3::assert_mpi_status( status );
+
+            C3::OwnedBlock< char > buffer( size );
+            status = MPI_Bcast( buffer.data(), size, MPI_CHAR, 0, exposure_comm().comm() );
+            C3::assert_mpi_status( status );
+            
+            std::vector< YAML::Node > tasks = YAML::LoadAll( buffer.data() );
+            for( auto& task : tasks ) if( _task_position ++ % exposure_lanes() == exposure_lane() ) _tasks.push( std::move( task ) );
+
+        }
+
+    }
+
+    YAML::Node task = _tasks.front(); 
+    _tasks.pop();
+    return task;
+
+}
+
 ///// // Load frame.
 ///// 
 ///// template< class InstrumentTraits >
