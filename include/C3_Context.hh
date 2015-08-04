@@ -7,7 +7,7 @@ namespace C3
 {
 
     /// @class Context
-    /// @brief TBD
+    /// @brief Processing context (parallel, serial, and so on).
     ///
     /// Context hosts a concurrency policy (something like serial or parallel
     /// that determines how execution is going to be done).
@@ -30,17 +30,10 @@ namespace C3
             /// No copy assignment operator.
             Context& operator = ( const Context& context ) = delete;
 
-            /// 
-            const YAML::Node& subtask( const YAML::Node& node ) const;
-
         private :   // Private methods.
 
             /// Constructor.
             Context() = default;
-
-        private :   // Private data members.
-
-            std::string _frame;
 
     };
 
