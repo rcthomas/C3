@@ -9,7 +9,7 @@ inline int C3::Application< Concurrency, InstrumentTraits, Engine >::run( int& a
     using ContextType    = C3::Context< Concurrency, InstrumentTraits >;
     ContextType& context = ContextType::instance( argc, argv );
     Engine< ContextType > engine;
-//  while( context.has_tasks() ) engine.process( context.next_task() );
+    while( context.has_tasks() ) engine.process( context.next_task() );
     return context.finalize();
 }
 
