@@ -99,10 +99,9 @@ template< class T >
 inline void C3::Serial< InstrumentTraits >::save( C3::Frame< T >& frame, const std::string& path )
 {
     C3::FitsCreator creator( path );
-    std::vector< C3::size_type > shape( 2 );
-    shape[ 0 ] = frame.ncolumns();
-    shape[ 1 ] = frame.nrows();
-    creator( frame.block(), this->frame(), shape );
+    int  naxis = 2;
+    long naxes[ 2 ] { frame.ncolumns(), frame.nrows() };
+    creator( frame.block(), this->frame(), naxis, naxes );
 }
 
 // Serial is easy, just save my damn stuff!
@@ -112,10 +111,9 @@ template< class T, class U >
 inline void C3::Serial< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path )
 {
     C3::FitsCreator creator( path );
-    std::vector< C3::size_type > shape( 2 );
-    shape[ 0 ] = output.ncolumns();
-    shape[ 1 ] = output.nrows();
-    creator( output.block(), this->frame(), shape );
-    creator( invvar.block(), this->frame() + "_INVVAR", shape );
-    creator(  flags.block(), this->frame() + "_FLAGS" , shape );
+    int  naxis = 2;
+    long naxes[ 2 ] { frame.ncolumns(), frame.nrows() };
+    creator( output.block(), this->frame(), naxis, naxes );
+    creator( invvar.block(), this->frame() + "_INVVAR", naxis, naxes );
+    creator(  flags.block(), this->frame() + "_FLAGS" , naxis, naxes );
 }
