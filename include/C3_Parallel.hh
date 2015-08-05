@@ -51,10 +51,6 @@ namespace C3
             template< class T, class U >
             void save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path );
 
-//          /// Save frame.
-//          template< class T >
-//          void save( C3::Frame< T >& output, const std::string& path );
-
             /// Communicator wrappers.
             ///@{
             const Communicator& world_comm()    const { return *_world_comm;    }

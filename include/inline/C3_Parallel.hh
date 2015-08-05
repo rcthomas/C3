@@ -11,7 +11,7 @@
 #include "../C3_FitsLoader.hh"
 #include "../C3_MpiTraits.hh"
 
-// Initialize.
+// Initialize command line, config, validation, tasks, etc.
 
 template< class InstrumentTraits >
 inline void C3::Parallel< InstrumentTraits >::init( int& argc, char**& argv )
@@ -23,86 +23,18 @@ inline void C3::Parallel< InstrumentTraits >::init( int& argc, char**& argv )
 
     _init_mpi( argc, argv );
     _init_world();
+    _validate_command_line( argc, argv );
     _init_hostname();
     _init_mpi_processes_per_node();
-    _init_frame_unpacked(); // TBD: packed frame comm, see below.
+    _init_frame_unpacked(); // TBD: Packed frame comm? See below.
+    _init_config();
+    _init_logger();
     _init_exposure();
     _init_node();
     _init_openmp();
+    _init_task_queue( argc, argv );
 
-    //
-
-    if( frame_comm().root() )
-    {
-
-        std::ifstream stream( argv[ 1 ] ); // std::ifstream in(filename, std::ios::in | std::ios::binary);
-        if( ! stream ) throw 123; // FIXME actual exception
-
-        stream.seekg( 0, std::ios::end );
-
-        int size = stream.tellg();
-        size ++;
-        C3::OwnedBlock< char > buffer( size );
-
-        stream.seekg( 0, std::ios::beg );
-        stream.read( buffer.data(), buffer.size() - 1 );
-        stream.close();
-
-        buffer[ size - 1 ] = '\0';
-
-        int status = MPI_Bcast( &size, 1, MPI_INT, 0, frame_comm().comm() );
-        C3::assert_mpi_status( status );
-
-        status = MPI_Bcast( buffer.data(), size, MPI_CHAR, 0, frame_comm().comm() );
-        C3::assert_mpi_status( status );
-
-        _config = YAML::Load( buffer.data() );
-
-    }
-    else
-    {
-        
-        int size   = 0;
-        int status = MPI_Bcast( &size, 1, MPI_INT, 0, frame_comm().comm() );
-        C3::assert_mpi_status( status );
-
-        C3::OwnedBlock< char > buffer( size );
-        status = MPI_Bcast( buffer.data(), size, MPI_CHAR, 0, frame_comm().comm() );
-        C3::assert_mpi_status( status );
-       
-        _config = YAML::Load( buffer.data() );
-
-    }
-
-    // Initiate logging.
-
-    if( _config[ "logger" ] )
-    {
-
-        const YAML::Node& node = _config[ "logger" ];
-
-        C3::LogLevel level = C3::LogLevel::DEFAULT;
-        if( node[ "level" ] ) level = C3::loglevel_enum( node[ "level" ].template as< std::string >() );
-
-        std::string path( "." );
-        if( node[ "path" ] ) path = node[ "path" ].template as< std::string >(); // default...
-        if( path.back() != '/' ) path += "/";
-
-        std::string fullprefix = path + "default";
-        if( node[ "prefix" ] ) fullprefix = path + node[ "prefix" ].template as< std::string >();
-
-        std::stringstream ss;
-        ss.fill( '0' );
-        ss.width( 3 );
-        ss << exposure_lane();
-        _logger.reset( new C3::FileLogger( fullprefix + "." + ss.str() + "." + frame() + ".log", level ) );
-        
-    }
-
-    // Parse other arguments into list of task files.
-
-    for( auto i = 2; i < argc; ++ i ) _task_files.push( argv[ i ] );
-    _task_position = 0;
+    logger().info( "Parallel context initialization complete." );
 
 }
 
@@ -111,12 +43,21 @@ inline void C3::Parallel< InstrumentTraits >::init( int& argc, char**& argv )
 template< class InstrumentTraits >
 inline int C3::Parallel< InstrumentTraits >::finalize()
 {
+    logger().info( "Parallel context finalizing." );
     int status = MPI_Finalize();
     C3::assert_mpi_status( status );
+    logger().info( "Goodbye!" );
     return EXIT_SUCCESS;
 }
 
-// Returns the exposure's next task in the stream.
+// Grab next task from stream.  If task queue is exhausted but task files
+// remain, replenish queue with tasks from next task file.  Note the pattern
+// here is the same as config initialization, except the communicator is the
+// exposure-lane communicator.  Exposure-lane communicator root reads the next
+// task file and broadcasts it to all the other ranks in the exposure lane.
+// Then all ranks in the exposure lane parse the task file into their task
+// queues.  Finally, note that tasks are collected according to a round-robin
+// rule.
 
 template< class InstrumentTraits >
 inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
@@ -128,29 +69,41 @@ inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
         std::string task_file = _task_files.front();
         _task_files.pop();
 
+        logger().debug( "Enqueuing tasks from from:", task_file );
+
         if( exposure_comm().root() )
         {
 
-            std::ifstream stream( task_file.c_str() ); // std::ifstream in(filename, std::ios::in | std::ios::binary);
-            if( ! stream ) throw 123; // FIXME actual exception
+            // Open config file, except if cannot.
+
+            std::ifstream stream( task_file );
+            if( ! stream ) throw C3::Exception::create( "Can't open task file:", task_file );
+
+            // Measure file size and add one to account for null-terminator we add.
 
             stream.seekg( 0, std::ios::end );
-
-            int size = stream.tellg();
+            C3::size_type size = stream.tellg();
             size ++;
-            C3::OwnedBlock< char > buffer( size );
 
+            // Allocate, rewind, fill buffer, close stream, add null-terminator.
+
+            C3::OwnedBlock< char > buffer( size );
             stream.seekg( 0, std::ios::beg );
             stream.read( buffer.data(), buffer.size() - 1 );
             stream.close();
-
             buffer[ size - 1 ] = '\0';
 
-            int status = MPI_Bcast( &size, 1, MPI_INT, 0, exposure_comm().comm() );
+            // Tell all other frame ranks how large a buffer to allocate.
+
+            int status = MPI_Bcast( &size, 1, C3::MpiTraits< C3::size_type >::datatype, 0, exposure_comm().comm() );
             C3::assert_mpi_status( status );
 
-            status = MPI_Bcast( buffer.data(), size, MPI_CHAR, 0, exposure_comm().comm() );
+            // Broadcast buffer contents.
+
+            status = MPI_Bcast( buffer.data(), size, C3::MpiTraits< char >::datatype, 0, exposure_comm().comm() );
             C3::assert_mpi_status( status );
+
+            // Parse tasks into queue, following round-robin rule.
 
             std::vector< YAML::Node > tasks = YAML::LoadAll( buffer.data() );
             for( auto& task : tasks ) if( _task_position ++ % exposure_lanes() == exposure_lane() ) _tasks.push( std::move( task ) );
@@ -159,14 +112,20 @@ inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
         else
         {
 
-            int size   = 0;
-            int status = MPI_Bcast( &size, 1, MPI_INT, 0, exposure_comm().comm() );
+            // Wait to be told how large a buffer needs to be allocated.
+            
+            C3::size_type size = 0;
+            int status = MPI_Bcast( &size, 1, C3::MpiType< C3::size_type >::datatype, 0, exposure_comm().comm() );
             C3::assert_mpi_status( status );
 
+            // Allocate buffer and wait for content.
+
             C3::OwnedBlock< char > buffer( size );
-            status = MPI_Bcast( buffer.data(), size, MPI_CHAR, 0, exposure_comm().comm() );
+            status = MPI_Bcast( buffer.data(), size, C3::MpiType< char >::datatype, 0, exposure_comm().comm() );
             C3::assert_mpi_status( status );
-            
+
+            // Parse tasks into queue, following round-robin rule.
+
             std::vector< YAML::Node > tasks = YAML::LoadAll( buffer.data() );
             for( auto& task : tasks ) if( _task_position ++ % exposure_lanes() == exposure_lane() ) _tasks.push( std::move( task ) );
 
@@ -174,29 +133,40 @@ inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
 
     }
 
+    logger().debug( "Next task. Tasks currently in queue:", _tasks.size() );
+
     YAML::Node task = _tasks.front(); 
     _tasks.pop();
     return task;
 
 }
 
-// Load frame.
+// Load frame.  Every frame rank just opens the file, goes to its HDU, and
+// loads it.  Not beautiful but until it breaks this is what we will use.
 
 template< class InstrumentTraits >
 template< class T >
-void C3::Parallel< InstrumentTraits >::load( C3::Frame< T >& frame, const std::string& path )
+void C3::Parallel< InstrumentTraits >::load( C3::Frame< T >& input, const std::string& path )
 {
-    // Musical chairs loader...
+
+    logger().debug( "Loading frame", frame(), "from", path, "[START]" );
+
     C3::FitsLoader loader( path );
-    loader( frame.block(), this->frame() );
+    loader( input.block(), frame() );
+
+    logger().debug( "Loading frame", frame(), "from", path, "[DONE]" );
+
 }
 
 // Save frame tuple.
+// FIXME more debug messages in here.
 
 template< class InstrumentTraits >
 template< class T, class U >
 void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path )
 {
+
+    logger().debug( "Saving to", path, "[START]" );
 
     int  naxis = 2;
     long naxes[ 2 ] { output.ncolumns(), output.nrows() };
@@ -205,12 +175,11 @@ void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< 
     {
 
         C3::FitsCreator creator( path );
-        logger().debug( "Writing to", path );
        
-        logger().debug( "... frame", this->frame() );
-        creator( output.block(), this->frame(), naxis, naxes );
-        creator( invvar.block(), this->frame() + "_INVVAR", naxis, naxes );
-        creator(  flags.block(), this->frame() + "_FLAGS" , naxis, naxes );
+        logger().debug( "... frame", frame() );
+        creator( output.block(), frame(), naxis, naxes );
+        creator( invvar.block(), frame() + "_INVVAR", naxis, naxes );
+        creator(  flags.block(), frame() + "_FLAGS" , naxis, naxes );
 
         // FIXME check statuses.
 
@@ -255,15 +224,6 @@ void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< 
 
 }
 
-///// // Save frame.
-///// 
-///// template< class InstrumentTraits >
-///// template< class T >
-///// void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, const std::string& path )
-///// {
-/////     // FIXME TBD
-///// }
-
 // Usual MPI launch.
 
 template< class InstrumentTraits >
@@ -282,6 +242,14 @@ template< class InstrumentTraits >
 inline void C3::Parallel< InstrumentTraits >::_init_world()
 {
     _world_comm.reset( new C3::Communicator( MPI_COMM_WORLD ) );
+}
+
+// Validate command line.  World root throws exception if looks wrong.
+
+template< class InstrumentTraits >
+inline void C3::Parallel< InstrumentTraits >::_validate_command_line( int& argc, char**& argv )
+{
+    if( world_comm().root() && argc < 3 ) throw C3::Exception( "Bad command line. Need executable and at least two arguments." );
 }
 
 // Configure hostname of this MPI process.  This should be the same for every
@@ -440,6 +408,120 @@ inline void C3::Parallel< InstrumentTraits >::_init_frame_packed()
 
 }
 
+// Parse config.  Exception if it can't be read or parsed.  
+
+template< class InstrumentTraits >
+inline void C3::Parallel< InstrumentTraits >::_init_config( int& argc, char**& argv )
+{
+
+    // Frame communicator root reads config as plain text and broadcasts it to
+    // all frame ranks.  Each frame rank including root parses the config.
+    // There is no point parsing the config at frame root, serializing it, and
+    // then parsing it again.
+
+    if( frame_comm().root() )
+    {
+
+        // Open config file, except if cannot.
+
+        std::ifstream stream( argv[ 1 ] );
+        if( ! stream ) throw C3::Exception::create( "Can't open config:", argv[ 1 ] );
+
+        // Measure file size and add one to account for null-terminator we add.
+
+        stream.seekg( 0, std::ios::end );
+        C3::size_type size = stream.tellg();
+        size ++;
+
+        // Allocate, rewind, fill buffer, close stream, add null-terminator.
+
+        C3::OwnedBlock< char > buffer( size );
+        stream.seekg( 0, std::ios::beg );
+        stream.read( buffer.data(), buffer.size() - 1 );
+        stream.close();
+        buffer[ size - 1 ] = '\0';
+
+        // Tell all other frame ranks how large a buffer to allocate.
+
+        int status = MPI_Bcast( &size, 1, C3::MpiType< C3::size_type >::datatype, 0, frame_comm().comm() ); // does this work?
+        C3::assert_mpi_status( status );
+
+        // Broadcast buffer contents.
+
+        status = MPI_Bcast( buffer.data(), size, C3::MpiType< char >::datatype, 0, frame_comm().comm() );
+        C3::assert_mpi_status( status );
+
+        // Parse config.
+
+        _config = YAML::Load( buffer.data() );
+
+    }
+    else
+    {
+
+        // Wait to be told how large a buffer needs to be allocated.
+        
+        C3::size_type size = 0;
+        int status = MPI_Bcast( &size, 1, C3::MpiType< C3::size_type >::datatype, 0, frame_comm().comm() );
+        C3::assert_mpi_status( status );
+
+        // Allocate buffer and wait for content.
+
+        C3::OwnedBlock< char > buffer( size );
+        status = MPI_Bcast( buffer.data(), size, C3::MpiType< char >::datatype, 0, frame_comm().comm() );
+        C3::assert_mpi_status( status );
+
+        // Parse config.
+       
+        _config = YAML::Load( buffer.data() );
+
+    }
+
+}
+
+// Initiate file logger.  If the config doesn't contain a logger then we set up
+// file-based logger with a default path and prefix.
+
+template< class InstrumentTraits >
+inline std::vector< std::string > C3::Parallel< InstrumentTraits >::_init_logger()
+{
+
+    // Shortcut to node.
+
+    const YAML::Node& node = _config[ "logger" ];
+
+    // Minimum log message level.  Default from Loglevel enum class definition.
+
+    C3::LogLevel level = C3::LogLevel::DEFAULT;
+    if( node[ "loglevel" ] ) level = C3::LogLevel_enum( node[ "loglevel" ].template as< std::string >() );
+
+    // Log-file path, default is current working directory (dot).  Trailing
+    // slash added if necessary.
+
+    std::string path( "." );
+    if( node[ "path" ] ) path = node[ "path" ].template as< std::string >(); // default...
+    if( path.back() != '/' ) path += "/";
+
+    // Concatenate path, prefix, exposure lane, frame identifier, and log-file
+    // suffix to create logger path.
+
+    std::string fullprefix = path + "default";
+    if( node[ "prefix" ] ) fullprefix = path + node[ "prefix" ].template as< std::string >();
+
+    std::stringstream ss;
+    ss.fill( '0' );
+    ss.width( 3 );
+    ss << exposure_lane();
+
+    _logger.reset( new C3::FileLogger( fullprefix + "." + ss.str() + "." + frame() + ".log", level ) );
+
+    // Debug messages.
+
+    logger().debug( "Logger initiated for frame:", frame() );
+    logger().debug( "Frame    communicator rank / size :", frame_comm().rank(), "/", frame_comm().size() );
+
+}
+
 // Exposure (exposure-lane) communicators, exposure lane setup.
 
 template< class InstrumentTraits >
@@ -459,6 +541,11 @@ inline void C3::Parallel< InstrumentTraits >::_init_exposure()
     // Exposure lane communicator wrapper.
 
     _exposure_comm.reset( new C3::Communicator( exposure ) );
+
+    // Debug messages.
+
+    logger().debug( "Exposure lane       index / count:", exposure_lane(), "/", exposure_lanes() );
+    logger().debug( "Exposure communicator rank / size:", exposure_comm().rank(), "/", exposure_comm().size() );
 
 }
 
@@ -496,6 +583,10 @@ inline void C3::Parallel< InstrumentTraits >::_init_node()
 
     _node_comm.reset( new C3::Communicator( node ) );
 
+    // Debug messages.
+
+    logger().debug( "Node     communicator rank / size:", node_comm().rank(), "/", node_comm().size() );
+
 }
 
 // Determine OpenMP threads per MPI process.
@@ -508,6 +599,21 @@ inline void C3::Parallel< InstrumentTraits >::_init_openmp()
 
     _threads_per_mpi_process = omp_get_max_threads();
 
+    // Debug messages.
+
+    logger().debug( "OpenMP threads per MPI process   :", _threads_per_mpi_process );
+
+}
+
+// Parse other arguments into list of task files, and set the task position to
+// zero.  We use this to round-robin tasks among exposure lanes.
+
+template< class InstrumentTraits >
+inline std::vector< std::string > C3::Parallel< InstrumentTraits >::_init_task_queue( argc, argv )
+{
+    for( auto i = 2; i < argc; ++ i ) _task_files.push( argv[ i ] );
+    logger().debug( "Task files in queue:", _task_files.size() );
+    _task_position = 0;
 }
 
 // Hostname of each MPI process in communicator in rank order.
@@ -548,3 +654,4 @@ inline std::vector< std::string > C3::Parallel< InstrumentTraits >::_gather_host
     return hostnames;
 
 }
+
