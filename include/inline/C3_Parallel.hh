@@ -7,6 +7,9 @@
 #include <omp.h>
 
 #include "../C3_Exception.hh"
+#include "../C3_FitsCreator.hh"
+#include "../C3_FitsLoader.hh"
+#include "../C3_MpiTraits.hh"
 
 // Initialize.
 
@@ -177,29 +180,86 @@ inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
 
 }
 
-///// // Load frame.
-///// 
-///// template< class InstrumentTraits >
-///// template< class T >
-///// void C3::Parallel< InstrumentTraits >::load( C3::Frame< T >& input, const std::string& path )
-///// {
-/////     // FIXME TBD
-///// }
-///// 
+// Load frame.
+
+template< class InstrumentTraits >
+template< class T >
+void C3::Parallel< InstrumentTraits >::load( C3::Frame< T >& frame, const std::string& path )
+{
+    // Musical chairs loader...
+    C3::FitsLoader loader( path );
+    loader( frame.block(), this->frame() );
+}
+
+// Save frame tuple.
+
+template< class InstrumentTraits >
+template< class T, class U >
+void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path )
+{
+
+    int  naxis = 2;
+    long naxes[ 2 ] { output.ncolumns(), output.nrows() };
+
+    if( exposure_comm().root() )
+    {
+
+        C3::FitsCreator creator( path );
+        logger().debug( "Writing to", path );
+       
+        logger().debug( "... frame", this->frame() );
+        creator( output.block(), this->frame(), naxis, naxes );
+        creator( invvar.block(), this->frame() + "_INVVAR", naxis, naxes );
+        creator(  flags.block(), this->frame() + "_FLAGS" , naxis, naxes );
+
+        // FIXME check statuses.
+
+        for( auto rank = 1; rank < exposure_comm().size(); ++ rank )
+        {
+
+            logger().debug( "... frame", InstrumentTraits::frames[ rank ] );
+
+            MPI_Status status;
+            MPI_Recv( naxes, naxis, C3::MpiType< long >::datatype, rank, 0, exposure_comm().comm(), &status );
+
+            // Write out frame HDU and inverse variance HDU.
+
+            {
+                C3::OwnedBlock< T > tmp( naxes[ 0 ] * naxes[ 1 ] );
+                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< T >::datatype, rank, 0, exposure_comm().comm(), &status );
+                creator( tmp, InstrumentTraits::frames[ rank ], naxis, naxes );
+
+                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< T >::datatype, rank, 0, exposure_comm().comm(), &status );
+                creator( tmp, InstrumentTraits::frames[ rank ] + "_INVVAR", naxis, naxes );
+            }
+
+            // Write out the flags HDU.
+
+            {
+                C3::OwnedBlock< U > tmp( naxes[ 0 ] * naxes[ 1 ] );
+                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< U >::datatype, rank, 0, exposure_comm().comm(), &status );
+                creator( tmp, InstrumentTraits::frames[ rank ] + "_FLAGS", naxis, naxes );
+            }
+
+        }
+
+    }
+    else
+    {
+        /// FIXME Check statuses
+        MPI_Send(                 naxes,                 naxis, C3::MpiType< long >::datatype, 0, 0, exposure_comm().comm() );
+        MPI_Send( output.block().data(), output.block().size(), C3::MpiType< T    >::datatype, 0, 0, exposure_comm().comm() );
+        MPI_Send( invvar.block().data(), invvar.block().size(), C3::MpiType< T    >::datatype, 0, 0, exposure_comm().comm() );
+        MPI_Send(  flags.block().data(),  flags.block().size(), C3::MpiType< U    >::datatype, 0, 0, exposure_comm().comm() );
+    }
+
+}
+
 ///// // Save frame.
 ///// 
 ///// template< class InstrumentTraits >
 ///// template< class T >
 ///// void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, const std::string& path )
-///// {
-/////     // FIXME TBD
-///// }
-///// 
-///// // Save frame tuple.
-///// 
-///// template< class InstrumentTraits >
-///// template< class T, class U >
-///// void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path )
 ///// {
 /////     // FIXME TBD
 ///// }

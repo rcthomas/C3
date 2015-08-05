@@ -43,17 +43,17 @@ namespace C3
             /// Logger.
             Logger& logger() { return *_logger; }
 
-//          /// Load frame.
-//          template< class T >
-//          void load( C3::Frame< T >& input, const std::string& path );
+            /// Load frame.
+            template< class T >
+            void load( C3::Frame< T >& frame, const std::string& path );
+
+            /// Save frame tuple.
+            template< class T, class U >
+            void save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path );
 
 //          /// Save frame.
 //          template< class T >
 //          void save( C3::Frame< T >& output, const std::string& path );
-
-//          /// Save frame tuple.
-//          template< class T, class U >
-//          void save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path );
 
             /// Communicator wrappers.
             ///@{
