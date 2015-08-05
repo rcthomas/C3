@@ -21,7 +21,7 @@ namespace C3
             explicit FitsCreator( const std::string& path );
 
             /// Select/create HDU and place data into it.
-            template< class T > void operator() ( Block< T >& block, const std::string& extname, const std::vector< C3::size_type >& shape );
+            template< class T > void operator() ( Block< T >& block, const std::string& extname, const int naxis, long* naxes );
 
 //          /// Select/create HDU.
 //          void select( const std::string& extname );
