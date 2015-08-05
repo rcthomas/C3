@@ -25,7 +25,7 @@ namespace C3
             void init( int& argc, char**& argv );
 
             /// Executed on exit.
-            int finalize() { return EXIT_SUCCESS; }
+            int finalize();
 
             /// Return the config.
             const YAML::Node& config() const { return _config; }
@@ -54,14 +54,18 @@ namespace C3
             /// Logger.
             Logger& logger() { return *_logger; }
 
-//          /// Save tuple.
-//          template< class T >
-//          void save( const C3::Tuple< T >& output, const std::string& path );
-
         protected : // Protected methods.
 
             /// Destructor.
             ~Serial() = default;
+
+        private :   // Private methods.
+
+            void _validate_command_line( int& argc, char**& argv );
+            void _init_config( int& argc, char**& argv );
+            void _validate_frame();
+            void _init_logger();
+            void _init_task_queue( int& argc, char**& argv );
 
         protected : // Protected data members.
 
