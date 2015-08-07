@@ -14,7 +14,7 @@ inline std::string C3::Exception::format( const T&... args )
 {
     std::stringstream ss;
     ss << std::boolalpha;
-    return format( ss, args... ).str();
+    return _format( ss, args... ).str();
 }
 
 // Format argument of any type into string stream.
@@ -32,5 +32,5 @@ template< class T, class... U >
 inline std::stringstream& C3::Exception::_format( std::stringstream& stream, const T& head, const U&... tail )
 {
     stream << head << " ";
-    return format( stream, tail... );
+    return _format( stream, tail... );
 }
