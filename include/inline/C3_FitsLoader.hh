@@ -3,12 +3,7 @@
 #include "../C3_FitsException.hh"
 #include "../C3_FitsTraits.hh"
 
-template< class T > 
-C3::Block< T >& fits_load_one( C3::Block< T >& block, const std::string& path, const std::string& extname )
-{
-    C3::FitsLoader loader( path );
-    return loader.load( block, extname );
-}
+// Constructor.
 
 inline C3::FitsLoader::FitsLoader( const std::string& path )
 {
@@ -17,15 +12,30 @@ inline C3::FitsLoader::FitsLoader( const std::string& path )
     C3::assert_fits_status( cfitsio_status );
 }
 
+// Select HDU and load data into pre-allocated block.
+
 template< class T >
-C3::Block< T >& C3::FitsLoader::operator () ( C3::Block< T >& block, const std::string& extname )
+inline C3::Block< T >& C3::FitsLoader::load( C3::Block< T >& block, const std::string& extname )
 {
     select( extname );
     load( block );
     return block;
 }
 
-void C3::FitsLoader::select( const std::string& extname )
+// Load data into pre-allocated block from previously selected HDU.
+
+template< class T >
+inline C3::Block< T >& C3::FitsLoader::load( C3::Block< T >& block )
+{
+    int cfitsio_status = 0;
+    fits_read_img( fits(), C3::FitsType< T >::datatype, 1, block.size(), 0, block.data(), 0, &cfitsio_status );
+    C3::assert_fits_status( cfitsio_status );
+    return block;
+}
+
+// Select HDU.
+
+inline void C3::FitsLoader::select( const std::string& extname )
 {
     char value[ FLEN_VALUE ];
     std::copy( extname.begin(), extname.end(), value );
@@ -33,13 +43,4 @@ void C3::FitsLoader::select( const std::string& extname )
     int cfitsio_status = 0;
     fits_movnam_hdu( fits(), IMAGE_HDU, value, 0, &cfitsio_status );
     C3::assert_fits_status( cfitsio_status );
-}
-
-template< class T >
-C3::Block< T >& C3::FitsLoader::load( C3::Block< T >& block )
-{           // FIXME check these numbers I always forget them...
-    int cfitsio_status = 0;
-    fits_read_img( fits(), C3::FitsType< T >::datatype, 1, block.size(), 0, block.data(), 0, &cfitsio_status );
-    C3::assert_fits_status( cfitsio_status );
-    return block;
 }
