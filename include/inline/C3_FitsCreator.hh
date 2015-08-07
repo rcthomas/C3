@@ -3,11 +3,9 @@
 #include "../C3_FitsException.hh"
 #include "../C3_FitsTraits.hh"
 
-template< class T > 
-void C3::fits_create_one( const C3::Block< T >& block, const std::string& path )
-{} 
+// Constructor.
 
-C3::FitsCreator::FitsCreator( const std::string& path )
+inline C3::FitsCreator::FitsCreator( const std::string& path )
 {
 
     int cfitsio_status = 0;
@@ -19,9 +17,19 @@ C3::FitsCreator::FitsCreator( const std::string& path )
 
 }
 
-template< class T > 
-void C3::FitsCreator::operator() ( Block< T >& block, const std::string& extname, const int naxis, long* naxes )
-{           // FIXME check these numbers I always forget them...
+// Create HDU and store unconverted data in it.
+
+template< class T >
+inline void C3::FitsCreator::create( Block< T >& block, const std::string& extname, const int naxis, long* naxes )
+{
+    create< T, T >( block, extname, naxis, naxes );
+}
+
+// Create HDU and store converted data in it.
+
+template< class T, class U > 
+inline void C3::FitsCreator::create( Block< U >& block, const std::string& extname, const int naxis, long* naxes )
+{
 
     int cfitsio_status = 0;
     fits_create_img( fits(), C3::FitsType< T >::bitpix, naxis, naxes, &cfitsio_status );

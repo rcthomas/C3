@@ -6,9 +6,6 @@
 namespace C3
 {
 
-    /// Convenience function to create a simple primary-image HDU output.
-    template< class T > void fits_create_one( const Block< T >& block, const std::string& path );
-
     /// @class FitsCreator
     /// @brief Populate a FITS file with data from Blocks.
 
@@ -20,14 +17,11 @@ namespace C3
             /// Constructor.
             explicit FitsCreator( const std::string& path );
 
-            /// Select/create HDU and place data into it.
-            template< class T > void operator() ( Block< T >& block, const std::string& extname, const int naxis, long* naxes );
+            /// Create HDU and store unconverted data in it.
+            template< class T > void create( Block< T >& block, const std::string& extname, const int naxis, long* naxes );
 
-//          /// Select/create HDU.
-//          void select( const std::string& extname );
-
-//          /// Place data from a Block into selected HDU.
-//          template< class T > void save( const Block< T >& block );
+            /// Create HDU and store unconverted data in it.
+            template< class T, class U > void create( Block< U >& block, const std::string& extname, const int naxis, long* naxes );
 
     };
 
