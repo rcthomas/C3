@@ -77,7 +77,7 @@ namespace C3
             void _init_logger_default();
             void _init_task_queue( int& argc, char**& argv );
 
-        protected : // Protected data members.
+        private : // Private data members.
 
             YAML::Node                  _config;        ///< Configuration.
             std::queue< std::string >   _task_files;    ///< Task stream.
