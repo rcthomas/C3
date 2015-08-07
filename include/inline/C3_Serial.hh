@@ -67,7 +67,7 @@ inline YAML::Node C3::Serial< InstrumentTraits >::next_task()
 
 }
 
-// Serial is easy case, just load my frame!
+// Load frame.
 
 template< class InstrumentTraits >
 template< class T >
@@ -77,17 +77,26 @@ inline void C3::Serial< InstrumentTraits >::load( C3::Frame< T >& input, const s
     logger().debug( "Loading frame", frame(), "from", path, "[START]" );
 
     C3::FitsLoader loader( path );
-    loader( input.block(), frame() );
+    loader.load( input.block(), frame() );
 
     logger().debug( "Loading frame", frame(), "from", path, "[DONE]" );
 
 }
 
-// Serial is easy, just save my damn stuff!
+// Save unconverted frame.
 
 template< class InstrumentTraits >
 template< class T >
 inline void C3::Serial< InstrumentTraits >::save( C3::Frame< T >& output, const std::string& path )
+{
+    save< T, T >( output, path );
+}
+
+// Save converted frame.
+
+template< class InstrumentTraits >
+template< class T, class U >
+inline void C3::Serial< InstrumentTraits >::save( C3::Frame< U >& output, const std::string& path )
 {
 
     logger().debug( "Saving frame", frame(), "to", path, "[START]" );
@@ -96,17 +105,26 @@ inline void C3::Serial< InstrumentTraits >::save( C3::Frame< T >& output, const 
 
     int  naxis = 2;
     long naxes[ 2 ] { output.ncolumns(), output.nrows() };
-    creator( output.block(), frame(), naxis, naxes );
+    creator.create< T, U >( output.block(), frame(), naxis, naxes );
 
     logger().debug( "Saving frame", frame(), "to", path, "[DONE]" );
     logger().debug( "Output", output.block().size(), "pixels,", output.ncolumns(), "columns x", output.nrows() );
 }
 
-// Serial is easy, just save my damn stuff!
+// Save frame tuple without conversion of output and inverse variance.
 
 template< class InstrumentTraits >
 template< class T, class U >
 inline void C3::Serial< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path )
+{
+    save< T, T, U >( output, invvar, flags, path );
+}
+
+// Save frame tuple with conversion of output and inverse variance.
+
+template< class InstrumentTraits >
+template< class T, class U, class V >
+inline void C3::Serial< InstrumentTraits >::save( C3::Frame< U >& output, C3::Frame< U >& invvar, C3::Frame< V >& flags, const std::string& path )
 {
 
     logger().debug( "Saving frame tuple", frame(), "to", path, "[START]" );
@@ -114,13 +132,13 @@ inline void C3::Serial< InstrumentTraits >::save( C3::Frame< T >& output, C3::Fr
     C3::FitsCreator creator( path );
 
     int  naxis = 2;
-    long naxes[ 2 ] { output.ncolumns(), output.nrows() };
-    creator( output.block(), frame(), naxis, naxes );
-    creator( invvar.block(), frame() + "_INVVAR", naxis, naxes );
-    creator(  flags.block(), frame() + "_FLAGS" , naxis, naxes );
+    long naxes[ 2 ] { static_cast< long >( output.ncolumns() ), static_cast< long >( output.nrows() ) };
+    creator.create< T, U >( output.block(), frame(), naxis, naxes );
+    creator.create< T, U >( invvar.block(), frame() + "_INVVAR", naxis, naxes );
+    creator.create        (  flags.block(), frame() + "_FLAGS" , naxis, naxes );
 
     logger().debug( "Saving frame tuple", frame(), "to", path, "[DONE]" );
-    logger().debug( "Output 3 x", output.block().size(), "pixels, each", output.ncolumns(), "columns x", output.nrows() );
+    logger().debug( "Output 3 x", output.block().size(), "pixels, each", output.ncolumns(), "columns x", output.nrows(), "rows" );
 
 }
 
@@ -163,14 +181,6 @@ inline void C3::Serial< InstrumentTraits >::_init_logger()
     logger().debug( "Logger initiated for frame:", frame() );
 }
 
-// Initiate default logger (standard one).
-
-template< class InstrumentTraits >
-inline void C3::Serial< InstrumentTraits >::_init_logger_default()
-{
-    _logger.reset( new C3::StandardLogger() );
-}
-
 // Initate logger based on config contents.
 
 template< class InstrumentTraits >
@@ -184,7 +194,7 @@ inline void C3::Serial< InstrumentTraits >::_init_logger_defined()
     // Minimum log message level.  Default from Loglevel enum class definition.
 
     C3::LogLevel level = C3::LogLevel::DEFAULT;
-    if( node[ "loglevel" ] ) level = C3::LogLevel_enum( node[ "loglevel" ].template as< std::string >() );
+    if( node[ "loglevel" ] ) level = C3::loglevel_enum( node[ "loglevel" ].template as< std::string >() );
 
     // Initiate a standard logger (log to standard output) if there no logger
     // filename prefix in config.
@@ -200,7 +210,7 @@ inline void C3::Serial< InstrumentTraits >::_init_logger_defined()
 
     std::string path( "." );
     if( node[ "path" ] ) path = node[ "path" ].template as< std::string >();
-    if( path.back() != "/" ) path += "/";
+    if( path.back() != '/' ) path += "/";
 
     // Concatenate path, prefix, exposure lane (always zero in serial),
     // frame identifier, and log-file suffix to create file logger path.
@@ -208,6 +218,14 @@ inline void C3::Serial< InstrumentTraits >::_init_logger_defined()
     std::string fullpath = path + node[ "prefix" ].template as< std::string >() + ".000." + frame() + ".log";
     _logger.reset( new C3::FileLogger( fullpath, level ) );
 
+}
+
+// Initiate default logger (standard one).
+
+template< class InstrumentTraits >
+inline void C3::Serial< InstrumentTraits >::_init_logger_default()
+{
+    _logger.reset( new C3::StandardLogger() );
 }
 
 // Initiate task queue.

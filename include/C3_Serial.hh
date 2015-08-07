@@ -43,13 +43,21 @@ namespace C3
             template< class T >
             void load( C3::Frame< T >& input, const std::string& path );
 
-            /// Save frame.
+            /// Save unconverted frame.
             template< class T >
             void save( C3::Frame< T >& output, const std::string& path );
 
-            /// Save frame tuple.
+            /// Save converted frame.
+            template< class T, class U >
+            void save( C3::Frame< U >& output, const std::string& path );
+
+            /// Save frame tuple without conversion of output and inverse variance.
             template< class T, class U >
             void save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path );
+
+            /// Save frame tuple with conversion of output and inverse variance.
+            template< class T, class U, class V >
+            void save( C3::Frame< U >& output, C3::Frame< U >& invvar, C3::Frame< V >& flags, const std::string& path );
 
             /// Logger.
             Logger& logger() { return *_logger; }
@@ -65,6 +73,8 @@ namespace C3
             void _init_config( int& argc, char**& argv );
             void _validate_frame();
             void _init_logger();
+            void _init_logger_defined();
+            void _init_logger_default();
             void _init_task_queue( int& argc, char**& argv );
 
         protected : // Protected data members.
