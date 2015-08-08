@@ -38,7 +38,7 @@ inline void C3::FitsCreator::create( Block< U >& block, const std::string& extna
     long* fpixel = new long [ naxis ];
     for( auto i = 0; i < naxis; ++ i ) fpixel[ i ] = 1;
 
-    fits_write_pix( fits(), C3::FitsType< T >::datatype, fpixel, block.size(), block.data(), &cfitsio_status );
+    fits_write_pix( fits(), C3::FitsType< U >::datatype, fpixel, block.size(), block.data(), &cfitsio_status );
     C3::assert_fits_status( cfitsio_status );
 
     delete [] fpixel;
