@@ -2,7 +2,7 @@
 #include <cassert>
 #include <functional>
 
-#include "C3_Congruent.hh"
+#include "../C3_Congruent.hh"
 
 namespace C3
 {
