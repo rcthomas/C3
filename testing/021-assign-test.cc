@@ -1,10 +1,26 @@
 
 #include "gtest/gtest.h"
 
+#include "C3_Block.hh"
 #include "C3_Column.hh"
 #include "C3_Frame.hh"
 #include "C3_Row.hh"
 #include "C3_Stack.hh"
+
+// Scalar to block.
+
+TEST( AssignTest, ScalarToBlock )
+{
+
+    C3::size_type size = 5;
+    C3::Block< int > container( size );
+
+    int value = 3;
+    C3::assign( container, value );
+
+    for( auto k = 0; k < size; ++k ) EXPECT_EQ( value, container[ k ] );
+
+}
 
 // Scalar to column.
 
@@ -168,4 +184,3 @@ TEST( AssignDeathTest, FrameToFrameMismatchShape )
     EXPECT_DEATH( C3::assign( container2, container1 ), "" );
 
 }
-
