@@ -1,7 +1,7 @@
 #ifndef C3_FRAME_HH
 #define C3_FRAME_HH
 
-#include "C3_OwnedBlock.hh"
+#include "C3_Block.hh"
 
 namespace C3
 {
@@ -10,20 +10,16 @@ namespace C3
     /// @brief Two-dimensional arrangement of pixels.
 
     template< class T >
-    class Frame
+    class Frame : public Block< T >
     {
 
         public :    // Public methods.
 
             /// Constructor.
-            Frame( const size_type ncolumns, const size_type nrows ) noexcept : 
-                _block( ncolumns * nrows ), _ncolumns( ncolumns ), _nrows( nrows ) {}
+            Frame( const size_type ncolumns, const size_type nrows ) noexcept;
 
-            /// Underlying block.
-            ///@{
-                  OwnedBlock< T >& block()       { return _block; }
-            const OwnedBlock< T >& block() const { return _block; }
-            ///@}
+            /// Initializing constructor.
+            Frame( const size_type ncolumns, const size_type nrows, const T pixel ) noexcept;
 
             /// Number of columns and rows.
             ///@{
@@ -33,18 +29,26 @@ namespace C3
 
             /// Coordinate access.
             ///@{
-            T& operator() ( const size_type j, const size_type k )       { return _block[ j + _ncolumns * k ]; }
-            T  operator() ( const size_type j, const size_type k ) const { return _block[ j + _ncolumns * k ]; }
+            T& operator() ( const size_type j, const size_type k )       { return (*this)[ j + _ncolumns * k ]; }
+            T  operator() ( const size_type j, const size_type k ) const { return (*this)[ j + _ncolumns * k ]; }
             ///@}
+
+            /// Pixel assignment.
+            Frame& operator = ( const T pixel ) noexcept;
+
+            /// Value type conversion.
+            template< class U >
+            operator Frame< U >() const noexcept;
 
         private :   // Private data members.
 
-            OwnedBlock< T > _block;     ///< Content.
-            size_type       _ncolumns;  ///< Total columns.
-            size_type       _nrows;     ///< Total rows.
+            size_type   _ncolumns;  ///< Total columns.
+            size_type   _nrows;     ///< Total rows.
 
     };
 
 }
+
+#include "inline/C3_Frame.hh"
 
 #endif

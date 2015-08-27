@@ -1,312 +1,279 @@
-#include <algorithm>
+
 #include <cassert>
-#include <functional>
 
 #include "../C3_Congruent.hh"
+
+// Internal declarations
 
 namespace C3
 {
 
-    namespace detail
-    {
+    // Assignment Kernel Driver Declarations
+    // -------------------------------------
+   
+    template< class Destination, class T, class BinaryOperator >
+    Destination& _assign( Destination& dest, const T src, BinaryOperator op );
+    
+    template< class T, class U, class BinaryOperator >
+    View< T >& _assign( View< T >& dest, const U src, BinaryOperator op );
+    
+    template< template< class > class Container, class T, class U, class BinaryOperator >
+    Container< T >& _assign( Container< T >& dest, const Container< U >& src, BinaryOperator op );
+    
+    template< class T, class U, class BinaryOperator >
+    View< T >& _assign( View< T >& dest, const View< U >& src, BinaryOperator op );
+    
+    template< class T, class U, class BinaryOperator >
+    Frame< T >& _assign( Frame< T >& dest, const Column< U >& src, BinaryOperator op );
+    
+    template< class T, class U, class BinaryOperator >
+    Frame< T >& _assign( Frame< T >& dest, const Row< U >& src, BinaryOperator op );
+    
+    template< class T, class U, class BinaryOperator >
+    Frame< T >& _assign( Frame< T >& dest, const View< U >& src, BinaryOperator op );
 
-        template< class T >
-        struct Identity {};
+    template< class T, class U, class BinaryOperator >
+    View< T >& _assign( View< T >& dest, const Column< U >& src, BinaryOperator op );
 
-        // Assignment Kernel.
+    template< class T, class U, class BinaryOperator >
+    View< T >& _assign( View< T >& dest, const Row< U >& src, BinaryOperator op );
+    
+    template< class T, class U, class BinaryOperator >
+    View< T >& _assign( View< T >& dest, const Frame< U >& src, BinaryOperator op );
 
-        template< template< class > class Operator >
-        struct AssignmentKernel
-        {
+    template< class T, class U, class BinaryOperator >
+    Stack< T >& _assign( Stack< T >& dest, const Frame< U >& src, BinaryOperator op );
+    
+    template< class T, class U, class BinaryOperator >
+    Stack< T >& _assign( Stack< T >& dest, const View< U >& src, BinaryOperator op );
 
-            template< class T, class U >
-            static void assign( T* dest_begin, T* dest_end, const U src )
-            {
-                std::transform( dest_begin, dest_end, dest_begin, std::bind( Operator< T >(), std::placeholders::_1, src ) );
-            }
+    // Identity (Binary Pass-Through)
+    // ------------------------------
 
-            template< class T, class U >
-            static void assign( const U* src_begin, const U* src_end, T* dest_begin )
-            {
-                std::transform( src_begin, src_end, dest_begin, dest_begin, Operator< T >() );
-            }
+    struct Identity {};
 
-        };
+    // Assignment Kernel Declarations
+    // ------------------------------
 
-        template<>
-        struct AssignmentKernel< Identity >
-        {
+    template< class T, class U >
+    void _assign_kernel_1( T* begin, T* end, const U src, Identity );
+    
+    template< class T, class U, class BinaryOperator >
+    void _assign_kernel_1( T* begin, T* end, const U src, BinaryOperator op );
 
-            template< class T, class U >
-            static void assign( T* dest_begin, T* dest_end, const U src )
-            {
-                std::fill( dest_begin, dest_end, src );
-            }
+    template< class T, class U >
+    void _assign_kernel_2( T* dest_begin, const U* src_begin, const U* src_end, Identity );
+    
+    template< class T, class U, class BinaryOperator >
+    void _assign_kernel_2( T* dest_begin, const U* src_begin, const U* src_end, BinaryOperator op );
 
-            template< class T, class U >
-            static void assign( const U* src_begin, const U* src_end, T* dest_begin )
-            {
-                std::copy( src_begin, src_end, dest_begin );
-            }
+    template< class Destination, class Source, class BinaryOperator >
+    Destination& _assign_kernel_3( Destination& dest, const Source& src, BinaryOperator op,
+        const size_type dest_stride, const size_type src_stride = 0 );
 
-        };
-
-        // Pixel-fill assignment algorithm.
-
-        template< template< class > class Operator, class T, class U >
-        inline void pixel_fill_assign( Block< T >& dest, const U src, 
-                const size_type offset, const size_type length, const size_type count, const size_type stride )
-        {
-            auto dest_begin = dest.begin() + offset;
-            auto dest_end   = dest_begin   + length;
-            for( auto i = 0; i < count; ++i )
-            {
-                AssignmentKernel< Operator >::assign( dest_begin, dest_end, src );
-                dest_begin += stride;
-                dest_end   += stride;
-            }
-        }
-
-        // Block-fill assignment algorithm.
-
-        template< template< class > class Operator, class T, class U >
-        inline void block_fill_assign( Block< T >& dest, const Block< U >& src, 
-                const size_type offset, const size_type length, const size_type stride )
-        {
-            auto dest_begin = dest.begin() + offset;
-            auto dest_end   = dest_begin   + length;
-            for( auto pixel = src.begin(); pixel != src.end(); ++pixel )
-            {
-                AssignmentKernel< Operator >::assign( dest_begin, dest_end, *pixel );
-                dest_begin += stride;
-                dest_end   += stride;
-            }
-        }
-
-        // Block-copy assignment algorithm.
-
-        template< template< class > class Operator, class T, class U >
-        inline void block_copy_assign( Block< T >& dest, const Block< U >& src,
-                const size_type  src_offset, const size_type src_length, const size_type src_stride,
-                const size_type dest_offset, const size_type dest_count, const size_type dest_stride )
-        {
-            auto src_begin  = src.begin()  + src_offset;
-            auto src_end    = src_begin    + src_length;
-            auto dest_begin = dest.begin() + dest_offset;
-            assert(  src_offset + dest_count * src_length <=  src.size() );
-            assert( dest_offset + dest_count * src_length <= dest.size() );
-            for( auto i = 0; i < dest_count; ++i )
-            {
-                AssignmentKernel< Operator >::assign( src_begin, src_end, dest_begin );
-                src_begin  += src_stride;
-                src_end    += src_stride;
-                dest_begin += dest_stride;
-            }
-        }
-
-        // Nested (fill within copy, no temporary) assignment.
-
-        template< template< class > class Operator, class T, class U >
-        inline void nested_assign( Block< T >& dest, const Block< U >& src,
-                const size_type  src_offset, const size_type  src_length, const size_type  src_stride,
-                const size_type dest_offset, const size_type dest_length, const size_type dest_stride, const size_type dest_count )
-        {
-            auto src_begin  = src.begin()  + src_offset;
-            auto src_end    = src_begin    + src_length;
-            auto dest_begin = dest.begin() + dest_offset;
-            auto dest_end   = dest_begin   + dest_length;
-            for( auto i = 0; i < dest_count; ++i )
-            {
-                for( auto pixel = src_begin; pixel != src_end; ++pixel )
-                {
-                    AssignmentKernel< Operator >::assign( dest_begin, dest_end, *pixel );
-                    dest_begin += dest_stride;
-                    dest_end   += dest_stride;
-                }
-                src_begin += src_stride;
-                src_end   += src_stride;
-            }
-        }
-
-        // The assignment schema could be implemented with tag dispatch, but the
-        // multiplexing is not compelling enough.  There are twenty overloaded
-        // function calls between various container and pixel types.  Using tag
-        // dispatch would get this down to fourteen, a reduction of only 30% in
-        // terms of number of functions.  This reduction would come at the cost of
-        // having to manage the type traits as well, which might obviate the 
-        // reduction in terms of code.
-
-        template< template< class > class Operator, class T, class U >
-        inline T& assign( T& dest, const U& src )
-        {
-            static_assert( true, "I have no idea what you want to do." );
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Column< T >& assign( Column< T >& dest, const U src )
-        {
-            pixel_fill_assign< Operator >( dest.block(), src, 0, dest.block().size(), 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Row< T >& assign( Row< T >& dest, const U src )
-        {
-            pixel_fill_assign< Operator >( dest.block(), src, 0, dest.block().size(), 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Frame< T >& assign( Frame< T >& dest, const U src )
-        {
-            pixel_fill_assign< Operator >( dest.block(), src, 0, dest.block().size(), 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Stack< T >& assign( Stack< T >& dest, const U src )
-        {
-            pixel_fill_assign< Operator >( dest.block(), src, 0, dest.block().size(), 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline View< T >& assign( View< T >& dest, const U src )
-        {
-            pixel_fill_assign< Operator >( dest.block(), src, dest.offset(), dest.ncolumns(), dest.nrows(), dest.stride() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Frame< T >& assign( Frame< T >& dest, const Column< U >& src )
-        {
-            block_fill_assign< Operator >( dest.block(), src.block(), 0, dest.nrows(), dest.nrows() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline View< T >& assign( View< T >& dest, const Column< U >& src )
-        {
-            block_fill_assign< Operator >( dest.block(), src.block(), dest.offset, dest.nrows(), dest.stride() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Stack< T >& assign( Stack< T >& dest, const Column< U >& src )
-        {
-            auto length = dest.nframes() * dest.nrows();
-            block_fill_assign< Operator >( dest.block(), src.block(), 0, length, length );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Stack< T >& assign( Stack< T >& dest, const Frame< U >& src )
-        {
-            block_fill_assign< Operator >( dest.block(), src.block(), 0, dest.nframes(), dest.nframes() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline OwnedBlock< T >& assign( OwnedBlock< T >& dest, const OwnedBlock< U >& src )
-        {
-            block_copy_assign< Operator >( dest, src, 0, src.size(), 0, 0, 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Column< T >& assign( Column< T >& dest, const Column< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), 0, src.block().size(), 0, 0, 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Row< T >& assign( Row< T >& dest, const Row< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), 0, src.block().size(), 0, 0, 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Frame< T >& assign( Frame< T >& dest, const Frame< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), 0, src.block().size(), 0, 0, 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Stack< T >& assign( Stack< T >& dest, const Stack< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), 0, src.block().size(), 0, 0, 1, 0 );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline View< T >& assign( View< T >& dest, const View< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), src.offset(), src.ncolumns(), src.stride(), dest.offset(), dest.nrows(), dest.stride() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline View< T >& assign( View< T >& dest, const Frame< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), 0, src.ncolumns(), src.ncolumns(), dest.offset(), dest.nrows(), dest.stride() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Frame< T >& assign( Frame< T >& dest, const View< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), src.offset(), src.ncolumns(), src.stride(), 0, dest.nrows(), dest.ncolumns() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Frame< T >& assign( Frame< T >& dest, const Row< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), 0, src.ncolumns(), 0, 0, dest.nrows(), dest.ncolumns() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline View< T >& assign( View< T >& dest, const Row< U >& src )
-        {
-            block_copy_assign< Operator >( dest.block(), src.block(), 0, src.ncolumns(), 0, dest.offset(), dest.nrows(), dest.stride() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Stack< T >& assign( Stack< T >& dest, const View< U >& src )
-        {
-            nested_assign< Operator >( dest.block(), src.block(), src.offset(), src.ncolumns(), src.stride(), 0, dest.nframes(), dest.nframes(), dest.nrows() );
-            return dest;
-        }
-
-        template< template< class > class Operator, class T, class U >
-        inline Stack< T >& assign( Stack< T >& dest, const Row< U >& src )
-        {
-            nested_assign< Operator >( dest.block(), src.block(), 0, src.ncolumns(), 0, 0, dest.nframes(), dest.nframes(), dest.nrows() );
-            return dest;
-        }
-
-    }
+    template< class Destination, class Source, class BinaryOperator >
+    Destination& _assign_kernel_4( Destination& dest, const Source& src, BinaryOperator op,
+        const size_type length, const size_type stride );
 
 }
 
-// Apply binary operator and assign result to destination.
-
-template< template< class > class Operator, class Destination, class Source >
-inline Destination& C3::assign( Destination& dest, const Source& src )
-{
-    assert( congruent( dest, src ) );
-    return C3::detail::assign< Operator >( dest, src );
-}
-
-// Assign pixel or container source to a container destination.
+// 
 
 template< class Destination, class Source >
 inline Destination& C3::assign( Destination& dest, const Source& src )
 {
-    return C3::assign< detail::Identity >( dest, src );
+    return C3::_assign( dest, src, C3::Identity() );
+}
+
+template< class Destination, class Source, class BinaryOperator >
+inline Destination& C3::assign( Destination& dest, const Source& src, BinaryOperator op )
+{
+    return C3::_assign( dest, src, op );
+}
+
+// Container from Pixel
+// --------------------
+
+template< class Destination, class T, class BinaryOperator >
+inline Destination& C3::_assign( Destination& dest, const T src, BinaryOperator op )
+{
+    C3::_assign_kernel_1( dest.begin(), dest.end(), src, op );
+    return dest;
+}
+
+template< class T, class U, class BinaryOperator >
+inline C3::View< T >& C3::_assign( C3::View< T >& dest, const U src, BinaryOperator op )
+{
+    auto begin = dest.begin();
+    auto end   = dest.begin + dest.ncolumns();
+    for( auto k = 0; k < dest.nrows(); ++k )
+    {
+        C3::_assign_kernel_1( begin, end, src, op );
+        begin += dest.stride();
+        src   += dest.stride();
+    }
+    return dest;
+}
+
+// Container from Same Container
+// -----------------------------
+
+template< template< class > class Container, class T, class U, class BinaryOperator >
+inline Container< T >& C3::_assign( Container< T >& dest, const Container< U >& src, BinaryOperator op )
+{
+    assert( C3::congruent( dest, src ) );
+    C3::_assign_kernel_2( dest.begin(), src.begin(), src.end(), op );
+    return dest;
+}
+
+template< class T, class U, class BinaryOperator >
+inline C3::View< T >& C3::_assign( C3::View< T >& dest, const C3::View< U >& src, BinaryOperator op )
+{
+    return C3::_assign_kernel_3( dest, src, op, dest.stride(), src.stride() );
+}
+
+// Container from Different Container
+// ----------------------------------
+
+// Frame from Column.
+
+template< class T, class U, class BinaryOperator >
+inline C3::Frame< T >& C3::_assign( C3::Frame< T >& dest, const C3::Column< U >& src, BinaryOperator op )
+{
+    return C3::_assign_kernel_4( dest, src, op, dest.ncolumns(), dest.ncolumns() );
+}
+
+// Frame from Row.
+
+template< class T, class U, class BinaryOperator >
+inline C3::Frame< T >& C3::_assign( C3::Frame< T >& dest, const C3::Row< U >& src, BinaryOperator op )
+{
+    return C3::_assign_kernel_3( dest, src, op, dest.ncolumns() );
+}
+
+// Frame from View.
+
+template< class T, class U, class BinaryOperator >
+inline C3::Frame< T >& C3::_assign( C3::Frame< T >& dest, const C3::View< U >& src, BinaryOperator op )
+{
+    return C3::_assign_kernel_3( dest, src, op, dest.ncolumns(), src.stride() );
+}
+
+// View from Column.
+
+template< class T, class U, class BinaryOperator >
+inline C3::View< T >& C3::_assign( C3::View< T >& dest, const C3::Column< U >& src, BinaryOperator op )
+{
+    return C3::_assign_kernel_4( dest, src, op, dest.ncolumns(), dest.stride() );
+}
+
+// View from Row.
+
+template< class T, class U, class BinaryOperator >
+inline C3::View< T >& C3::_assign( C3::View< T >& dest, const C3::Row< U >& src, BinaryOperator op )
+{
+    return C3::_assign_kernel_3( dest, src, op, dest.stride() );
+}
+
+// View from Frame.
+
+template< class T, class U, class BinaryOperator >
+inline C3::View< T >& C3::_assign( C3::View< T >& dest, const C3::Frame< U >& src, BinaryOperator op )
+{
+    return C3::_assign_kernel_3( dest, src, op, dest.stride(), src.ncolumns() );
+}
+
+// Stack from Frame.
+
+template< class T, class U, class BinaryOperator >
+inline C3::Stack< T >& C3::_assign( C3::Stack< T >& dest, const C3::Frame< U >& src, BinaryOperator op )
+{
+    return C3::_assign_kernel_4( dest, src, op, dest.nframes(), dest.nframes() );
+}
+
+// Stack from View.
+
+template< class T, class U, class BinaryOperator >
+inline C3::Stack< T >& C3::_assign( C3::Stack< T >& dest, const C3::View< U >& src, BinaryOperator op )
+{
+    assert( C3::congruent( dest, src ) );
+    auto dest_begin = dest.begin();
+    auto dest_end   = dest_begin + dest.nframes();
+    const auto src_begin = src.begin();
+    const auto src_end   = src_begin + src.ncolumns();
+    for( auto k = 0; k < dest.nrows(); ++k )
+    {
+        for( auto pixel = src_begin; pixel != src_end; ++pixel )
+        {
+            C3::_assign_kernel_1( dest_begin, dest_end, *pixel );
+            dest_begin += dest.nframes();
+            dest_end   += dest.nframes();
+        }
+        src_begin += src.stride();
+        src_end   += src.stride();
+    }
+    return dest;
+}
+
+// Assignment Kernel Definitions
+// -----------------------------
+
+template< class T, class U >
+inline void C3::_assign_kernel_1( T* begin, T* end, const U src, C3::Identity )
+{
+    std::fill( begin, end, src );
+}
+
+template< class T, class U, class BinaryOperator >
+inline void C3::_assign_kernel_1( T* begin, T* end, const U src, BinaryOperator op )
+{
+    for( ; begin != end; ++begin ) *begin = op( *begin, src ); // Ensure order (see std::transform).
+}
+
+template< class T, class U >
+inline void C3::_assign_kernel_2( T* dest_begin, const U* src_begin, const U* src_end, C3::Identity )
+{
+    std::copy( src_begin, src_end, dest_begin );
+}
+
+template< class T, class U, class BinaryOperator >
+inline void C3::_assign_kernel_2( T* dest_begin, const U* src_begin, const U* src_end, BinaryOperator op )
+{
+    std::copy( src_begin, src_end, dest_begin );
+    for( ; src_begin != src_end; ++src_begin, ++dest_begin ) *dest_begin = op( *dest_begin, src_begin ); 
+    // Ensure order (see std::transform).
+}
+
+template< class Destination, class Source, class BinaryOperator >
+inline Destination& C3::_assign_kernel_3( Destination& dest, const Source& src, BinaryOperator op,
+        const C3::size_type dest_stride, const C3::size_type src_stride )
+{
+    assert( C3::congruent( dest, src ) );
+    auto dest_begin = dest.begin();
+    const auto src_begin = src.begin();
+    const auto src_end   = src_begin + src.ncolumns();
+    for( auto k = 0; k < dest.nrows(); ++k )
+    {
+        C3::_assign_kernel_2( dest_begin, src_begin, src_end, op );
+        dest_begin += dest_stride;
+        src_begin  += src_stride;
+        src_end    += src_stride;
+    }
+    return dest;
+}
+
+template< class Destination, class Source, class BinaryOperator >
+inline Destination& C3::_assign_kernel_4( Destination& dest, const Source& src, BinaryOperator op,
+        const C3::size_type length, const C3::size_type stride )
+{
+    assert( C3::congruent( dest, src ) );
+    auto begin = dest.begin();
+    auto end   = begin + length;
+    for( auto pixel : src )
+    {
+        C3::_assign_kernel_1( begin, end, pixel, op );
+        begin += stride;
+        end   += stride;
+    }
+    return dest;
 }

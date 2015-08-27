@@ -21,7 +21,6 @@ namespace C3
     // Container forward declarations.
 
     template< class T > class Block;
-    template< class T > class OwnedBlock;
     template< class T > class Column;
     template< class T > class Row;
     template< class T > class Frame;

@@ -35,7 +35,7 @@ namespace C3
 
         // Block specializations.
         
-        template< class T, class U > struct CongruenceTraits< OwnedBlock< T >, OwnedBlock< U > > { using type = SizeCongruence; };
+        template< class T, class U > struct CongruenceTraits< Block< T >, Block< U > > { using type = SizeCongruence; };
         
         // Column source specializations.  All have row convergence but working out
         // the type traits for that takes up almost as many lines of code.

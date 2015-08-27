@@ -1,7 +1,7 @@
 #ifndef C3_COLUMN_HH
 #define C3_COLUMN_HH
 
-#include "C3_OwnedBlock.hh"
+#include "C3_Block.hh"
 
 namespace C3
 {
@@ -10,36 +10,37 @@ namespace C3
     /// @brief Vertical arrangement of pixels.
 
     template< class T >
-    class Column
+    class Column : public Block< T >
     {
 
         public :    // Public methods.
-
+        
             /// Constructor.
-            explicit Column( const size_type nrows ) noexcept : 
-                _block( nrows ) {}
-
-            /// Underlying block.
-            ///@{
-                  OwnedBlock< T >& block()       { return _block; }
-            const OwnedBlock< T >& block() const { return _block; }
-            ///@}
+            explicit Column( const size_type nrows ) noexcept;
+        
+            /// Initializing constructor.
+            Column( const size_type nrows, const T pixel ) noexcept;
 
             /// Number of rows.
-            size_type nrows() const { return _block.size(); }
-
+            size_type nrows() const { return this->size(); }
+        
             /// Coordinate access.
-            ///@{
-            T& operator() ( const size_type k )       { return _block[ k ]; }
-            T  operator() ( const size_type k ) const { return _block[ k ]; }
-            ///@}
+            /// @{
+            T& operator() ( const size_type k )       { return (*this)[ k ]; }
+            T  operator() ( const size_type k ) const { return (*this)[ k ]; }
+            /// @}
 
-        private :   // Private data members.
+            /// Pixel assignment.
+            Column& operator = ( const T pixel ) noexcept;
 
-            OwnedBlock< T > _block; ///< Content.
+            /// Value type conversion.
+            template< class U >
+            operator Column< U >() const noexcept;
 
     };
 
 }
+
+#include "inline/C3_Column.hh"
 
 #endif
