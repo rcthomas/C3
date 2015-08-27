@@ -3,6 +3,10 @@
 
 #include <cstdlib>
 
+/// @file
+/// @namespace C3
+/// @brief FIXME
+
 namespace C3
 {
 
