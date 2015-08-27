@@ -50,43 +50,62 @@ namespace C3
 
         public :    // Public methods.
 
-            /// Array subscript access.
-            ///@{
-            T& operator [] ( const size_type pos )       { return _data[ pos ]; }
-            T  operator [] ( const size_type pos ) const { return _data[ pos ]; }
-            ///@}
+            /// Constructor.
+            explicit Block( const size_type size ) noexcept;
+
+            /// Initializing constructor.
+            Block( const size_type size, const T pixel ) noexcept;
+
+            /// Copy constructor.
+            Block( const Block& block ) noexcept;
+
+            /// Move constructor.
+            Block( Block&& block ) noexcept;
+
+            /// Copy assignment.
+            Block& operator = ( const Block& block ) noexcept;
+
+            /// Move assignment.
+            Block& operator = ( Block&& block ) noexcept;
+
+            /// Destructor.
+            ~Block();
 
             /// Total elements.
             size_type size() const { return _size; }
 
             /// Native C++ array access.
-            ///@{
+            /// @{
                   T* data()       { return _data; }
             const T* data() const { return _data; }
-            ///@}
+            /// @}
 
             /// Start of native C++ array.
-            ///@{
+            /// @{
                   T* begin()       { return data(); }
             const T* begin() const { return data(); }
-            ///@}
+            /// @}
            
             /// End of native C++ array.
-            ///@{
+            /// @{
                   T* end()       { return data() + size(); }
             const T* end() const { return data() + size(); }
-            ///@}
+            /// @}
 
-        protected : // Protected methods.
+            /// Pixel assignment.
+            Block& operator = ( const T pixel ) noexcept;
 
-            /// Constructor.
-            Block( const size_type size, T* data ) noexcept :
-                _size( size ), _data( data ) {}
+            /// Value type conversion.
+            template< class U > 
+            operator Block< U >() const noexcept;
 
-            /// Destructor.
-            ~Block() = default;
+            /// Array subscript access.
+            /// @{
+            T& operator [] ( const size_type pos )       { return _data[ pos ]; }
+            T  operator [] ( const size_type pos ) const { return _data[ pos ]; }
+            /// @}
 
-        protected : // Protected data members.
+        private :   // Private data members.
 
             size_type   _size;  ///< Total elements.
             T*          _data;  ///< Content.
@@ -94,5 +113,7 @@ namespace C3
     };
 
 }
+
+#include "inline/C3_Block.hh"
 
 #endif
