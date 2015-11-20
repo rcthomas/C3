@@ -1,6 +1,6 @@
 
 TARGET = \
-    decam-test-engines
+    decam-subtract-overscan
 
 include ../../Makefile
 CXXFLAGS+=-std=c++11

@@ -77,7 +77,7 @@ inline void C3::Serial< InstrumentTraits >::load( C3::Frame< T >& input, const s
     logger().debug( "Loading frame", frame(), "from", path, "[START]" );
 
     C3::FitsLoader loader( path );
-    loader.load( input.block(), frame() );
+    loader.load( input, frame() );
 
     logger().debug( "Loading frame", frame(), "from", path, "[DONE]" );
 
@@ -133,12 +133,12 @@ inline void C3::Serial< InstrumentTraits >::save( C3::Frame< U >& output, C3::Fr
 
     int  naxis = 2;
     long naxes[ 2 ] { static_cast< long >( output.ncolumns() ), static_cast< long >( output.nrows() ) };
-    creator.create< T, U >( output.block(), frame(), naxis, naxes );
-    creator.create< T, U >( invvar.block(), frame() + "_INVVAR", naxis, naxes );
-    creator.create        (  flags.block(), frame() + "_FLAGS" , naxis, naxes );
+    creator.create< T, U >( output, frame(), naxis, naxes );
+    creator.create< T, U >( invvar, frame() + "_INVVAR", naxis, naxes );
+    creator.create        (  flags, frame() + "_FLAGS" , naxis, naxes );
 
     logger().debug( "Saving frame tuple", frame(), "to", path, "[DONE]" );
-    logger().debug( "Output 3 x", output.block().size(), "pixels, each", output.ncolumns(), "columns x", output.nrows(), "rows" );
+    logger().debug( "Output 3 x", output.size(), "pixels, each", output.ncolumns(), "columns x", output.nrows(), "rows" );
 
 }
 

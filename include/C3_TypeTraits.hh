@@ -1,6 +1,8 @@
 #ifndef C3_TYPE_TRAITS_HH
 #define C3_TYPE_TRAITS_HH
 
+#include <type_traits>
+
 #include "C3.hh"
 
 namespace C3
@@ -24,7 +26,7 @@ namespace C3
     template< class T > struct ValueType< Stack < T > > { using type = T; };
 
     template< class T > struct IsBlock                 { static const bool value = false; };
-    template< class T > struct IsBlock< Block< T > >  { static const bool value =  true; };
+    template< class T > struct IsBlock< Block< T > >   { static const bool value =  true; };
 
     template< class T > struct IsColumn                 { static const bool value = false; };
     template< class T > struct IsColumn< Column< T > >  { static const bool value =  true; };

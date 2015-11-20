@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <cassert>
 
 #include "../C3_Congruent.hh"
