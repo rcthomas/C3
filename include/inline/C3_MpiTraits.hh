@@ -2,6 +2,12 @@
 #include <mpi.h>
 
 template<>
+struct C3::MpiType< char >
+{
+    static const MPI_Datatype datatype = MPI_CHAR;
+};
+
+template<>
 struct C3::MpiType< unsigned char >
 {
     static const MPI_Datatype datatype = MPI_UNSIGNED_CHAR;
