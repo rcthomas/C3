@@ -2,4 +2,5 @@
 logger  :
     loglevel : "debug"
 frame   : "S4"
-rootdir : "/Users/rthomas/Downloads/2013-03-30-zero/"
+input_root : "/Users/rthomas/Downloads/2013-03-30-zero/"
+output_root : "./"
