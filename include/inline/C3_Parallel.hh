@@ -27,10 +27,9 @@ inline void C3::Parallel< InstrumentTraits >::init( int& argc, char**& argv )
     _init_hostname();
     _init_mpi_processes_per_node();
     _init_frame_unpacked(); // TBD: Packed frame comm? See below.
-    _init_config();
-    _init_logger();
+    _init_config( argc, argv );
     _init_exposure();
-    _init_node();
+    _init_logger();
     _init_openmp();
     _init_task_queue( argc, argv );
 
@@ -87,7 +86,7 @@ inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
 
             // Allocate, rewind, fill buffer, close stream, add null-terminator.
 
-            C3::OwnedBlock< char > buffer( size );
+            C3::Block< char > buffer( size );
             stream.seekg( 0, std::ios::beg );
             stream.read( buffer.data(), buffer.size() - 1 );
             stream.close();
@@ -95,12 +94,12 @@ inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
 
             // Tell all other frame ranks how large a buffer to allocate.
 
-            int status = MPI_Bcast( &size, 1, C3::MpiTraits< C3::size_type >::datatype, 0, exposure_comm().comm() );
+            int status = MPI_Bcast( &size, 1, C3::MpiType< C3::size_type >::datatype, 0, exposure_comm().comm() );
             C3::assert_mpi_status( status );
 
             // Broadcast buffer contents.
 
-            status = MPI_Bcast( buffer.data(), size, C3::MpiTraits< char >::datatype, 0, exposure_comm().comm() );
+            status = MPI_Bcast( buffer.data(), size, C3::MpiType< char >::datatype, 0, exposure_comm().comm() );
             C3::assert_mpi_status( status );
 
             // Parse tasks into queue, following round-robin rule.
@@ -120,7 +119,7 @@ inline YAML::Node C3::Parallel< InstrumentTraits >::next_task()
 
             // Allocate buffer and wait for content.
 
-            C3::OwnedBlock< char > buffer( size );
+            C3::Block< char > buffer( size );
             status = MPI_Bcast( buffer.data(), size, C3::MpiType< char >::datatype, 0, exposure_comm().comm() );
             C3::assert_mpi_status( status );
 
@@ -152,18 +151,26 @@ void C3::Parallel< InstrumentTraits >::load( C3::Frame< T >& input, const std::s
     logger().debug( "Loading frame", frame(), "from", path, "[START]" );
 
     C3::FitsLoader loader( path );
-    loader( input.block(), frame() );
+    loader.load( input, frame() );
 
     logger().debug( "Loading frame", frame(), "from", path, "[DONE]" );
 
 }
 
-// Save frame tuple.
-// FIXME more debug messages in here.
+// Save unconverted frame.
+
+template< class InstrumentTraits >
+template< class T >
+inline void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, const std::string& path )
+{
+    save< T, T >( output, path );
+}
+
+// Save converted frame.
 
 template< class InstrumentTraits >
 template< class T, class U >
-void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path )
+inline void C3::Parallel< InstrumentTraits >::save( C3::Frame< U >& output, const std::string& path )
 {
 
     logger().debug( "Saving to", path, "[START]" );
@@ -177,9 +184,68 @@ void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< 
         C3::FitsCreator creator( path );
        
         logger().debug( "... frame", frame() );
-        creator( output.block(), frame(), naxis, naxes );
-        creator( invvar.block(), frame() + "_INVVAR", naxis, naxes );
-        creator(  flags.block(), frame() + "_FLAGS" , naxis, naxes );
+        creator.create< T, U >( output, frame(), naxis, naxes );
+
+        // FIXME check statuses.
+
+        for( auto rank = 1; rank < exposure_comm().size(); ++ rank )
+        {
+
+            logger().debug( "... frame", InstrumentTraits::frames[ rank ] );
+
+            MPI_Status status;
+            MPI_Recv( naxes, naxis, C3::MpiType< long >::datatype, rank, 0, exposure_comm().comm(), &status );
+
+            // Write out frame HDU.
+
+            {
+                C3::Block< U > tmp( naxes[ 0 ] * naxes[ 1 ] );
+                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< U >::datatype, rank, 0, exposure_comm().comm(), &status );
+                creator.create< T, U >( tmp, InstrumentTraits::frames[ rank ], naxis, naxes );
+            }
+
+        }
+
+    }
+    else
+    {
+        /// FIXME Check statuses
+        MPI_Send(         naxes,         naxis, C3::MpiType< long >::datatype, 0, 0, exposure_comm().comm() );
+        MPI_Send( output.data(), output.size(), C3::MpiType< U    >::datatype, 0, 0, exposure_comm().comm() );
+    }
+
+}
+
+// Save frame tuple without conversion of output and inverse variance.
+
+template< class InstrumentTraits >
+template< class T, class U >
+inline void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path )
+{
+    save< T, T, U >( output, invvar, flags, path );
+}
+
+// Save frame tuple with conversion of output and inverse variance.
+
+template< class InstrumentTraits >
+template< class T, class U, class V >
+void C3::Parallel< InstrumentTraits >::save( C3::Frame< U >& output, C3::Frame< U >& invvar, C3::Frame< V >& flags, const std::string& path )
+{
+
+    logger().debug( "Saving to", path, "[START]" );
+
+    int  naxis = 2;
+    long naxes[ 2 ] { output.ncolumns(), output.nrows() };
+
+    if( exposure_comm().root() )
+    {
+
+        C3::FitsCreator creator( path );
+       
+        logger().debug( "... frame", frame() );
+        creator.create< T, U >( output, frame(), naxis, naxes );
+        creator.create< T, U >( invvar, frame() + "_INVVAR", naxis, naxes );
+        creator.create        (  flags, frame() + "_FLAGS" , naxis, naxes );
 
         // FIXME check statuses.
 
@@ -194,20 +260,20 @@ void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< 
             // Write out frame HDU and inverse variance HDU.
 
             {
-                C3::OwnedBlock< T > tmp( naxes[ 0 ] * naxes[ 1 ] );
-                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< T >::datatype, rank, 0, exposure_comm().comm(), &status );
-                creator( tmp, InstrumentTraits::frames[ rank ], naxis, naxes );
+                C3::Block< U > tmp( naxes[ 0 ] * naxes[ 1 ] );
+                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< U >::datatype, rank, 0, exposure_comm().comm(), &status );
+                creator.create< T, U >( tmp, InstrumentTraits::frames[ rank ], naxis, naxes );
 
-                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< T >::datatype, rank, 0, exposure_comm().comm(), &status );
-                creator( tmp, InstrumentTraits::frames[ rank ] + "_INVVAR", naxis, naxes );
+                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< U >::datatype, rank, 0, exposure_comm().comm(), &status );
+                creator.create< T, U >( tmp, InstrumentTraits::frames[ rank ] + "_INVVAR", naxis, naxes );
             }
 
             // Write out the flags HDU.
 
             {
-                C3::OwnedBlock< U > tmp( naxes[ 0 ] * naxes[ 1 ] );
-                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< U >::datatype, rank, 0, exposure_comm().comm(), &status );
-                creator( tmp, InstrumentTraits::frames[ rank ] + "_FLAGS", naxis, naxes );
+                C3::Block< V > tmp( naxes[ 0 ] * naxes[ 1 ] );
+                MPI_Recv( tmp.data(), tmp.size(), C3::MpiType< V >::datatype, rank, 0, exposure_comm().comm(), &status );
+                creator.create( tmp, InstrumentTraits::frames[ rank ] + "_FLAGS", naxis, naxes );
             }
 
         }
@@ -216,10 +282,10 @@ void C3::Parallel< InstrumentTraits >::save( C3::Frame< T >& output, C3::Frame< 
     else
     {
         /// FIXME Check statuses
-        MPI_Send(                 naxes,                 naxis, C3::MpiType< long >::datatype, 0, 0, exposure_comm().comm() );
-        MPI_Send( output.block().data(), output.block().size(), C3::MpiType< T    >::datatype, 0, 0, exposure_comm().comm() );
-        MPI_Send( invvar.block().data(), invvar.block().size(), C3::MpiType< T    >::datatype, 0, 0, exposure_comm().comm() );
-        MPI_Send(  flags.block().data(),  flags.block().size(), C3::MpiType< U    >::datatype, 0, 0, exposure_comm().comm() );
+        MPI_Send(         naxes,         naxis, C3::MpiType< long >::datatype, 0, 0, exposure_comm().comm() );
+        MPI_Send( output.data(), output.size(), C3::MpiType< U    >::datatype, 0, 0, exposure_comm().comm() );
+        MPI_Send( invvar.data(), invvar.size(), C3::MpiType< U    >::datatype, 0, 0, exposure_comm().comm() );
+        MPI_Send(  flags.data(),  flags.size(), C3::MpiType< V    >::datatype, 0, 0, exposure_comm().comm() );
     }
 
 }
@@ -234,7 +300,7 @@ inline void C3::Parallel< InstrumentTraits >::_init_mpi( int& argc, char**& argv
 }
 
 // World communicator wrapper.  Probably should not be used after start-up.
-// Frame, exposure, or node communicators should be used instead.  Frame has
+// Frame or exposure communicators should be used instead.  Frame has
 // all MPI processes active after start-up, should be used as a replacement for
 // world from then on.  So, world still exists, just don't touch it.
 
@@ -385,7 +451,12 @@ inline void C3::Parallel< InstrumentTraits >::_init_frame_unpacked()
     // Release all MPI processes not in frame communicator.  Frame communicator
     // is now effectively the "world" communicator to use from now on.
 
-    if( frame == MPI_COMM_NULL ) exit( finalize() );
+    if( frame == MPI_COMM_NULL ) 
+    {
+        int status = MPI_Finalize();
+        C3::assert_mpi_status( status );
+        exit( EXIT_SUCCESS );
+    }
 
     // Frame communicator wrapper.
 
@@ -435,7 +506,7 @@ inline void C3::Parallel< InstrumentTraits >::_init_config( int& argc, char**& a
 
         // Allocate, rewind, fill buffer, close stream, add null-terminator.
 
-        C3::OwnedBlock< char > buffer( size );
+        C3::Block< char > buffer( size );
         stream.seekg( 0, std::ios::beg );
         stream.read( buffer.data(), buffer.size() - 1 );
         stream.close();
@@ -467,7 +538,7 @@ inline void C3::Parallel< InstrumentTraits >::_init_config( int& argc, char**& a
 
         // Allocate buffer and wait for content.
 
-        C3::OwnedBlock< char > buffer( size );
+        C3::Block< char > buffer( size );
         status = MPI_Bcast( buffer.data(), size, C3::MpiType< char >::datatype, 0, frame_comm().comm() );
         C3::assert_mpi_status( status );
 
@@ -479,11 +550,33 @@ inline void C3::Parallel< InstrumentTraits >::_init_config( int& argc, char**& a
 
 }
 
+// Exposure (exposure-lane) communicators, exposure lane setup.
+
+template< class InstrumentTraits >
+inline void C3::Parallel< InstrumentTraits >::_init_exposure()
+{
+
+    // MPI_Comm_split frame communicator to make exposure-lane communicators.
+
+    _exposure_lanes = frame_comm().size() / exposure_lane_width();
+    _exposure_lane  = frame_comm().rank() / exposure_lane_width();  // split "color"
+    int key         = frame_comm().rank() % exposure_lane_width();
+
+    MPI_Comm exposure;
+    int status = MPI_Comm_split( frame_comm().comm(), _exposure_lane, key, &exposure );
+    C3::assert_mpi_status( status );
+
+    // Exposure lane communicator wrapper.
+
+    _exposure_comm.reset( new C3::Communicator( exposure ) );
+
+}
+
 // Initiate file logger.  If the config doesn't contain a logger then we set up
 // file-based logger with a default path and prefix.
 
 template< class InstrumentTraits >
-inline std::vector< std::string > C3::Parallel< InstrumentTraits >::_init_logger()
+inline void C3::Parallel< InstrumentTraits >::_init_logger()
 {
 
     // Shortcut to node.
@@ -493,7 +586,7 @@ inline std::vector< std::string > C3::Parallel< InstrumentTraits >::_init_logger
     // Minimum log message level.  Default from Loglevel enum class definition.
 
     C3::LogLevel level = C3::LogLevel::DEFAULT;
-    if( node[ "loglevel" ] ) level = C3::LogLevel_enum( node[ "loglevel" ].template as< std::string >() );
+    if( node[ "loglevel" ] ) level = C3::loglevel_enum( node[ "loglevel" ].template as< std::string >() );
 
     // Log-file path, default is current working directory (dot).  Trailing
     // slash added if necessary.
@@ -519,73 +612,8 @@ inline std::vector< std::string > C3::Parallel< InstrumentTraits >::_init_logger
 
     logger().debug( "Logger initiated for frame:", frame() );
     logger().debug( "Frame    communicator rank / size :", frame_comm().rank(), "/", frame_comm().size() );
-
-}
-
-// Exposure (exposure-lane) communicators, exposure lane setup.
-
-template< class InstrumentTraits >
-inline void C3::Parallel< InstrumentTraits >::_init_exposure()
-{
-
-    // MPI_Comm_split frame communicator to make exposure-lane communicators.
-
-    _exposure_lanes = frame_comm().size() / exposure_lane_width();
-    _exposure_lane  = frame_comm().rank() / exposure_lane_width();  // split "color"
-    int key         = frame_comm().rank() % exposure_lane_width();
-
-    MPI_Comm exposure;
-    int status = MPI_Comm_split( frame_comm().comm(), _exposure_lane, key, &exposure );
-    C3::assert_mpi_status( status );
-
-    // Exposure lane communicator wrapper.
-
-    _exposure_comm.reset( new C3::Communicator( exposure ) );
-
-    // Debug messages.
-
-    logger().debug( "Exposure lane       index / count:", exposure_lane(), "/", exposure_lanes() );
-    logger().debug( "Exposure communicator rank / size:", exposure_comm().rank(), "/", exposure_comm().size() );
-
-}
-
-// Node communicators.  These are split from exposure communicators, not the
-// frame communicator, so there is a communicator for each node within an
-// exposure lane.  That is, there may be more than one node communicator per
-// node, but they correspond to different exposure lanes.
-
-template< class InstrumentTraits >
-inline void C3::Parallel< InstrumentTraits >::_init_node()
-{
-
-    // Index unique hostnames in exposure communicator.
-
-    std::map< std::string, int > index;
-
-    int count = 0; 
-    std::vector< std::string > hostnames = _gather_hostnames( exposure_comm() );
-    for( auto it = hostnames.begin(); it != hostnames.end(); ++ it )
-    {
-        if( index.find( *it ) != index.end() ) continue;
-        index[ *it ] = count ++;
-    }
-
-    // Split on unique hostname.
-
-    int color = index[ _hostname ];
-    int key   = exposure_comm().rank();  // FIXME verify the only thing that matters is the ORDER in determining the rank on the new comm.
-
-    MPI_Comm node;
-    int status = MPI_Comm_split( exposure_comm().comm(), color, key, &node );
-    C3::assert_mpi_status( status );
-
-    // Node communicator wrapper.
-
-    _node_comm.reset( new C3::Communicator( node ) );
-
-    // Debug messages.
-
-    logger().debug( "Node     communicator rank / size:", node_comm().rank(), "/", node_comm().size() );
+    logger().debug( "Exposure lane       index / count :", exposure_lane(), "/", exposure_lanes() );
+    logger().debug( "Exposure communicator rank / size :", exposure_comm().rank(), "/", exposure_comm().size() );
 
 }
 
@@ -609,7 +637,7 @@ inline void C3::Parallel< InstrumentTraits >::_init_openmp()
 // zero.  We use this to round-robin tasks among exposure lanes.
 
 template< class InstrumentTraits >
-inline std::vector< std::string > C3::Parallel< InstrumentTraits >::_init_task_queue( argc, argv )
+inline void C3::Parallel< InstrumentTraits >::_init_task_queue( int& argc, char**& argv )
 {
     for( auto i = 2; i < argc; ++ i ) _task_files.push( argv[ i ] );
     logger().debug( "Task files in queue:", _task_files.size() );

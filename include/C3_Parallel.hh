@@ -47,9 +47,21 @@ namespace C3
             template< class T >
             void load( C3::Frame< T >& frame, const std::string& path );
 
-            /// Save frame tuple.
+            /// Save unconverted frame.
+            template< class T >
+            void save( C3::Frame< T >& output, const std::string& path );
+
+            /// Save converted frame.
+            template< class T, class U >
+            void save( C3::Frame< U >& output, const std::string& path );
+
+            /// Save frame tuple without conversion of output and inverse variance.
             template< class T, class U >
             void save( C3::Frame< T >& output, C3::Frame< T >& invvar, C3::Frame< U >& flags, const std::string& path );
+
+            /// Save frame tuple with conversion of output and inverse variance.
+            template< class T, class U, class V >
+            void save( C3::Frame< U >& output, C3::Frame< U >& invvar, C3::Frame< V >& flags, const std::string& path );
 
             /// Communicator wrappers.
             ///@{
@@ -75,16 +87,18 @@ namespace C3
 
             /// Initializers for various components.
             ///@{
-            void _init( int& argc, char**& argv );      // Main initializer.
-            void _init_mpi( int& argc, char**& argv );  // Launch MPI.
-            void _init_world();                         // World communicator wrapper.
-            void _init_hostname();                      // Hostname of this MPI process.
-            void _init_mpi_processes_per_node();        // Per node in world at startup.
-            void _init_frame_unpacked();                // Unpacked frame communicator.
-            void _init_frame_packed();                  // Packed frame communicator.
-            void _init_exposure();                      // Exposure communicators.
-            void _init_node();                          // Node communicators.
-            void _init_openmp();                        // OpenMP information.
+            void _init_mpi( int& argc, char**& argv );              // Launch MPI.
+            void _init_world();                                     // World communicator wrapper.
+            void _validate_command_line( int& argc, char**& argv ); // 
+            void _init_hostname();                                  // Hostname of this MPI process.
+            void _init_mpi_processes_per_node();                    // Per node in world at startup.
+            void _init_frame_unpacked();                            // Unpacked frame communicator.
+            void _init_frame_packed();                              // Packed frame communicator.
+            void _init_config( int& argc, char**& argv );           // 
+            void _init_exposure();                                  // Exposure communicators.
+            void _init_logger();
+            void _init_openmp();                                    // OpenMP information.
+            void _init_task_queue( int& argc, char**& argv );
             ///@}
 
             /// Hostname of each process in an MPI communicator in rank order.
@@ -103,7 +117,6 @@ namespace C3
             std::unique_ptr< C3::Communicator > _world_comm;     ///< All MPI processes contained at startup.
             std::unique_ptr< C3::Communicator > _frame_comm;     ///< MPI processes actively handling frames.
             std::unique_ptr< C3::Communicator > _exposure_comm;  ///< MPI processes within an exposure lane.
-            std::unique_ptr< C3::Communicator > _node_comm;      ///< MPI processes with the same hostname.
     
             int                 _exposure_lanes;            ///< Number of exposure lanes.
             int                 _mpi_processes_per_node;    ///< MPI processes per node.
