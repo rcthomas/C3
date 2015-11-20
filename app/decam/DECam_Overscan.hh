@@ -7,6 +7,7 @@
 #include "C3_Application.hh"
 #include "C3_Column.hh"
 #include "C3_Context.hh"
+#include "C3_Parallel.hh"
 #include "C3_Serial.hh"
 #include "C3_View.hh"
 
@@ -61,7 +62,7 @@ inline void DECam::Overscan< Context >::process( const YAML::Node& task )
 
     // Input frame.
     
-    auto input_path = config[ "rootdir" ].as< std::string >() + task[ "relpath" ].as< std::string >();
+    auto input_path = config[ "input_root" ].as< std::string >() + task[ "relpath" ].as< std::string >();
     auto ncolumns   = my_task[ "naxis1" ].as< int >();
     auto nrows      = my_task[ "naxis2" ].as< int >();
 
@@ -178,7 +179,7 @@ inline void DECam::Overscan< Context >::process( const YAML::Node& task )
 
     // Write the output.
 
-    auto output_path = task[ "output" ].as< std::string >();
+    auto output_path = config[ "output_root" ].as< std::string >() + task[ "output" ].as< std::string >();
     context.template save< float >( output, invvar, flags, output_path );
 
 }
