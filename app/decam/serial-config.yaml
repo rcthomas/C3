@@ -1,0 +1,5 @@
+---
+logger  :
+    loglevel : "debug"
+frame   : "S4"
+rootdir : "/Users/rthomas/Downloads/2013-03-30-zero/"
