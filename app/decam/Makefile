@@ -25,12 +25,6 @@ INCLUDE+=-I$(CFITSIO_DIR)/include
 LDFLAGS+=-L$(CFITSIO_DIR)/lib
 LIBS+=-lcfitsio
 
-# Need GSL; NERSC module.
-
-INCLUDE+=-I$(GSL_DIR)/include
-LDFLAGS+=-L$(GSL_DIR)/lib
-LIBS+=-lgsl
-
 # 
 
 OBJECT=$(TARGET:=.o)
