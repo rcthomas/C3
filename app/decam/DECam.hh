@@ -24,7 +24,7 @@ namespace DECam
 const std::vector< std::string > DECam::Traits::frames( { "S1", "S2", "S3", "N1", "N2", "N3", "S8", "S9", "S14", "S15", "S20", "S25", "N8", "N9", "N14", "N15",
         "N20", "N25", "S10", "S11", "S12", "S13", "S18", "S19", "S16", "S17", "S21", "S22", "S23", "S24", "S26", "S27", "S28", "S29", "S30", "S31", "N4", "N5",
         "N6", "N7", "S4", "S5", "S6", "S7", "N10", "N11", "N12", "N13", "N18", "N19", "N16", "N17", "N21", "N22", "N23", "N24", "N26", "N27", "N28", "N29",
-        "N30", "N31", "FS1", "FS2", "FS3", "FS4", "FN1", "FN2", "FN3", "FN4" } );
+        "N30", "N31" } ); // , "FS1", "FS2", "FS3", "FS4", "FN1", "FN2", "FN3", "FN4" } );
 
 inline bool DECam::Traits::frame_exists( const std::string& frame )
 {
