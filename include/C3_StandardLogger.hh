@@ -1,6 +1,8 @@
 #ifndef C3_STANDARD_LOGGER_HH
 #define C3_STANDARD_LOGGER_HH
 
+#include <iostream>
+
 #include "C3_Logger.hh"
 
 namespace C3

@@ -6,6 +6,8 @@
 namespace C3
 {
 
+    template< class T > class Block;
+
     /// @class FitsCreator
     /// @brief Populate a FITS file with data from Blocks.
 
