@@ -7,8 +7,6 @@
 #include "C3_Application.hh"
 #include "C3_Column.hh"
 #include "C3_Context.hh"
-#include "C3_Parallel.hh"
-#include "C3_Serial.hh"
 #include "C3_View.hh"
 
 #include "DECam.hh"
