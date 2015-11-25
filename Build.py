@@ -32,6 +32,17 @@ class EdisonMakefile ( Makefile ) :
         cxxflags = cxxflags or "-std=c++11 -fast -no-ipo"
         super( EdisonMakefile, self ).__init__( cxx, cxxflags )
 
+class CoriMakefile ( Makefile ) :
+
+    @classmethod
+    def is_match( cls ) :
+        return os.environ.get( "NERSC_HOST", "" ) == "cori"
+
+    def __init__( self, cxx = None, cxxflags = None ) :
+        cxx      = cxx      or "CC"
+        cxxflags = cxxflags or "-std=c++11 -fast -no-ipo"
+        super( CoriMakefile, self ).__init__( cxx, cxxflags )
+
 class ClangMakefile ( Makefile ) :
 
     @classmethod
@@ -72,7 +83,7 @@ class MakefileFactory ( object ) :
 
 if __name__ == "__main__" :
 
-    factory  = MakefileFactory( edison = EdisonMakefile, clang = ClangMakefile, travis = TravisMakefile )
+    factory  = MakefileFactory( edison = EdisonMakefile, clang = ClangMakefile, travis = TravisMakefile, cori = CoriMakefile )
     makefile = factory.create()
     with open( "Makefile", "w" ) as stream :
         stream.write( "{}".format( makefile ) )
